@@ -1,0 +1,2382 @@
+
+1.HashMap Implementation	2
+2.top k frequent in a string[]	6
+3.missing number I	9
+4.Common Numbers Of Two Sorted Arrays	10
+5.remove unnecessary spaces	12
+6.Remove Adjacent Repeated Characters I	14
+7.Remove Adjacent Repeated Characters II	15
+8.find substring	17
+8.Longest Ascending SubArray--DP	20
+9.Max Product Of Cutting Rope--DP	20
+10.jump game-array hooper-dp	21
+10-2.Array Hooper II -- dp	23
+11.print if block--dfs	24
+12.palindrome partition--DP	26
+13.remove a certain character -- String	29
+14、15.reverse a string/sentence I -- String	30
+16.reverse a sentence II -- string	32
+17.right shift n characters -- string	33
+18.replace a string -- string	34
+19.Encode a string--string	36
+20.decode-string	38
+21.Longest Substring Without Repeating Characters	40
+22.reorder array -- string	41
+23.Nqueens--recursion	42
+24.spiral traverse I	44
+25.spiral traverse II--recursion	45
+26.spiral generate -- recursion	47
+27.String Abbreviation Matching	48
+28.Lowest common ancestor--recursion*	49
+29.perfect shuffling--probability & sampling	53
+30.use random 5 to generate random 7	53
+30-2.use random 5 to generate random 1000	54
+31.reservoir sampling--sampling	54
+32.reservoir sampling with k samplings--sampling	55
+33.Median Tracker -- sampling	56
+34.percentile 95	57
+35.deep copy a LinkedList with random pointer--DS	58
+36.deep copy of a graph	59
+
+
+
+1.HashMap Implementation
+用到了很多链表的操作，还是不够熟练！！！！尤其是最后一个函数，当我们rehash的时候，如何在链表的头上添加元素还是要注意！
+package hashMap;
+
+public class MyHashMap<K, V> {
+	static class Node<K, V>{
+		final K key;
+		V value;
+		Node<K,V> next;
+		
+		public Node(K key, V value){
+			this.key = key;
+			this.value = value;
+		}
+		
+		public void setValue(V value){
+			this.value = value;
+		}
+	}
+	//fields
+	private Node<K,V>[] nodes;
+	private int size;
+	private static final float LOAD_FACTOR = 0.75f;
+	private static final int DEFAUL_INITIAL_SIZE = 10;
+	private static final int SCALE_FACTOR = 2;
+	
+	//constructor
+	public MyHashMap(){
+		size = 0;
+		nodes = new Node[DEFAUL_INITIAL_SIZE];
+	}
+	public MyHashMap(int initialCapacity){
+		size = 0;
+		nodes = new Node[initialCapacity];
+	}
+	
+	//API
+	public V put(K key, V value){
+		int index = getIndex(key);
+		Node<K,V> head = nodes[index];
+		Node<K,V> curr = head;
+		while(head != null){
+			if (ifKeyMatch(key, head.key)){
+				//找到了这个key，覆盖value，返回value
+				V preVal = curr.value;
+				curr.value = value;
+				return preVal;
+			}
+			head = head.next;
+		}
+		//当没有找到key，我们需要加到末尾去！
+		Node<K,V> newNode = new Node(key,value);
+		newNode.next = nodes[index];//好像是把原来这个地方的值挤到下一个去，把自己放在index这个地方。
+		nodes[index] = newNode;
+		size++;
+		if (size >= LOAD_FACTOR * nodes.length){
+			rehash();
+		}
+		return null;
+	}
+	public V get(K key){
+		int index = getIndex(key);
+		Node<K,V> head = nodes[index];
+		while(head != null){
+			if (ifKeyMatch(key,head.key)){
+				return head.value;
+			}
+			head = head.next;
+		}
+		return null;
+	}
+	public int size(){
+		return this.size;
+	}
+	public boolean containsKey(K key){
+		int index = getIndex(key);
+		Node<K,V> head = nodes[index];
+		while(head != null){
+			if (ifKeyMatch(key,head.key)){
+				return true;
+			}
+			head = head.next;
+		}
+		return false;
+	}
+	public boolean isEmpty(){
+		return size() == 0;
+	}
+	public V remove(K key){
+		int index = getIndex(key);
+		Node<K,V> head = nodes[index];
+		Node<K,V> curr = head, prev = null;
+		while (curr != null){
+			if (ifKeyMatch(key,head.key)){
+				if (prev == null){
+					nodes[index] = curr.next;
+				} else{
+					prev.next = curr.next;
+				}
+				size--;
+				return curr.value;
+			}
+			prev = curr;
+			curr = curr.next;
+		}
+		return null;
+	}
+	
+	//helper
+	private int getIndex(K key){
+		int index = 0;
+		if (key != null){
+			int code = key.hashCode() & 0x7fffffff;
+			index = code % nodes.length;
+		}
+		return index;
+	}
+	
+	private boolean ifKeyMatch(K key1, K key2){
+		if (key1 == null || key2 == null){
+			return key1 == key2;
+		}
+		return key1.equals(key2);
+	}
+	
+	private void rehash(){
+		Node<K,V>[] oldNodes = nodes;
+		nodes = new Node[nodes.length * SCALE_FACTOR];
+		for (Node<K,V> node: oldNodes){
+			while(node != null){
+				Node<K,V> next = node.next;
+				int index = getIndex(node.key);
+				//这一步也是很重要的，之前没有理解。这种方法的单链表头上加元素。第一次来到这个index给node.next是nodes[index]，假设是e1，
+				//等到下次来了一个index一样的
+				//元素的时候，这就起作用啦！！我们之前加的是e1,那么表示node.next = e1！这时候，把新的e2（这一个循环过来的那个node）加到了nodes的index这个位置上，就完成了再头上添加了，发现很神奇，因为他的next是e1，这就是为什么之前要操作一下！这句话其实是为了下一次index相等的时候而做的操作！如果一开始是头，那么比较难理解用意。
+				//元素了！
+				node.next = nodes[index];
+				nodes[index] = node;
+				node = next;
+			}
+		}
+	}
+public static void main(String[] args){
+		MyHashMap<String, Integer> map = new MyHashMap<>();
+		map.put("tim", 11);
+		map.put("amy", 12);
+		map.put("dd", 10);
+		map.put("james", 15);
+		System.out.println(map.get("james"));
+		
+	}
+}
+2.top k frequent in a string[]
+这道题目总和了minHeap和HashMap的操作，值得学习很多地方，像Comparator的构建，Map.Entry<K,V>的构建和其methods的使用！这是HashMap最基础的操作，必须掌握。
+package hashMap;
+
+import java.util.*;
+
+public class topKFrequent {
+	public String[] topKFrequent(String[] combo,int k){
+		if (combo == null || combo.length == 0){
+			return new String[0];
+		}
+		Map<String,Integer> wordFre = mapString(combo);
+		PriorityQueue<Map.Entry<String, Integer>> minHeap = new PriorityQueue(k,new Comparator<Map.Entry<String,Integer>>(){
+			public int compare(Map.Entry<String, Integer> a, Map.Entry<String, Integer> b){
+				return a.getValue().compareTo(b.getValue());
+//这里的value直接用compareTo就可以比较了，不需要重新写。
+			}
+		});
+使用Map.Entry<K,V>去访问调用HashMap里面的key和value相当方便！
+		for (Map.Entry<String, Integer> entry : wordFre.entrySet()){
+			if (minHeap.size() < k){
+				minHeap.offer(entry);
+			} else if (minHeap.peek().getValue() < entry.getValue()){
+				minHeap.poll();
+				minHeap.offer(entry);
+			}
+		}
+		return putIntoSArray(minHeap);
+	}
+	public String[] putIntoSArray(PriorityQueue<Map.Entry<String, Integer>> min){
+		String[] result = new String[min.size()];
+		for (int i = min.size() - 1; i>= 0; i--){
+			result[i] = min.poll().getKey();
+		}
+		return result;
+	}
+	private Map<String,Integer> mapString(String[] combo){
+		Map<String,Integer> word = new HashMap<>();
+		for (String i : combo){
+			Integer v = word.get(i);//这里要用integer这个类
+//这里把一个HashMap从string[]中拿出来的构建过程要很熟悉！这里用了generic type来存value，很方便的就加入到了word里面，而且只需要调用map一次！这个方法效率很高！！
+			if (v == null){
+				word.put(i, 1);
+			} else{
+				word.put(i, v+1);
+			}
+		}
+		return word;
+	}
+	//my solution
+	public String[] topKFrequent2(String[] combo, int k){
+		if (combo == null || combo.length == 0){
+			return new String[0];
+		}
+		Map<String,Integer> wordFre = new HashMap<>();//这一步可以单独写一个function，而且我写的太复杂，调用太多次了！
+		for (int i = 0; i < combo.length; i++ ){
+			String key = combo[i];
+			if (wordFre.containsKey(key)){
+				wordFre.put(key, wordFre.get(key) + 1);
+			} else {
+				wordFre.put(key,1);
+		}
+		}
+		//java solution uses entrySet in <>，那样效率更好！
+		PriorityQueue<String> minHeap = new PriorityQueue<>(k, new Comparator<String>(){
+			public int compare(String a, String b){
+				if (wordFre.get(a).equals(wordFre.get(b))){
+					return 0;
+				} else{
+					return wordFre.get(a) > wordFre.get(b) ? 1 : -1;
+		}
+		}
+		});
+		int times = 0;
+		for (String key : wordFre.keySet()){
+			if (times < k){//actually times is equal to minHeap.size()
+				minHeap.offer(key);
+				times++;
+			} else{
+				int top = wordFre.get(minHeap.peek());
+				if (top < wordFre.get(key)){
+					minHeap.poll();
+					minHeap.offer(key);
+				}
+			}
+		}
+		String[] result = new String[minHeap.size()];
+		for (int i = minHeap.size() - 1; i >= 0; i--){
+			result[i] = minHeap.poll();
+		}
+		return result;
+	}
+	public static void main(String[] args){
+		topKFrequent solu = new topKFrequent();
+		int k = 5;
+		String[] s =  {"d","a","c","b","d","a","b","b","a","d","d","a","d"};
+		String[] result = solu.topKFrequent2(s, k);
+		for (String i : result){
+			System.out.println(i);
+		}
+		
+	
+	}
+}
+3.missing number I 
+这道题还有很多方法，例如求总和，减一下，少了的就是。
+public class Solution {
+  public int missing(int[] array) {
+    if (array == null || array.length == 0){
+	    	return 1;
+    
+    int num = array.length;
+    Set<Integer> numSet = new HashSet<>(num + 1);
+    for (int i : array){
+    	numSet.add(i);
+    
+    for (int i = 1; i <= num + 1; i++){
+    	if (!numSet.contains(i)){
+    		return i;
+    
+    
+    return -1;
+  
+}
+用亦或的方法如下，很神奇。
+
+
+4.Common Numbers Of Two Sorted Arrays
+package hashMap;
+
+import java.util.*;
+
+public class commonNum {
+	public List<Integer> common2(List<Integer> A, List<Integer> B) {
+		if (A.size() == 0 || B.size() == 0) {
+			return new ArrayList<>();
+		}
+		int i = 0, j = 0;
+		List<Integer> result = new ArrayList<>();
+		while (i < A.size() && j < B.size()) {
+			Integer a = A.get(i);
+			Integer b = B.get(j);
+			if (a < b) {
+				i++;
+			} else if (a == b) {
+				result.add(a);
+				i++;
+				j++;
+			} else {
+				j++;
+			}
+		}
+		return result;
+	}
+
+	public List<Integer> common(List<Integer> A, List<Integer> B) {
+		if (A.size() == 0 || B.size() == 0) {
+			return new ArrayList<>();
+		}
+		Map<Integer, Integer> mapA = new HashMap<>();
+		Map<Integer, Integer> mapB = new HashMap<>();
+		for (Integer i : A) {
+			Integer curr = mapA.get(i);
+			if (curr == null) {
+				mapA.put(i, 1);
+			} else {
+				mapA.put(i, curr + 1);
+			}
+		}
+		for (Integer i : B) {
+			Integer curr = mapB.get(i);
+			if (curr == null) {
+				mapB.put(i, 1);
+			} else {
+				mapB.put(i, curr + 1);
+			}
+		}
+		List<Integer> result = new ArrayList<>();
+		for (Map.Entry<Integer, Integer> entry : mapA.entrySet()) {
+			Integer currB = mapB.get(entry.getKey());
+			if (currb != null){			
+int num = Math.min(currB,entry.getValue());
+for (int j = 0; j < num; j++) {
+					result.add(currKey);
+				}
+			}
+		}
+		return result;
+	}
+
+	public static void main(String[] args) {
+		List<Integer> a = new ArrayList<>();
+		List<Integer> b = new ArrayList<>();
+		a.add(1);
+		a.add(3);
+		a.add(2);
+		a.add(4);
+		a.add(4);
+		a.add(5);
+		b.add(1);
+		b.add(3);
+		b.add(4);
+		b.add(4);
+		commonNum solu = new commonNum();
+
+		System.out.println(solu.common2(a, b));
+
+	}
+
+}
+5.remove unnecessary spaces
+这道题laicode的test case有问题。我自己用了快慢指针做，一直报错。以下是java solution。就用这个方法好了，因为这里用一个for 循环的i代替了我们快指针的作用。
+我们在这里需要考虑的就是，如果遇到了空格，那么有三种情况：在开头，在中间，在结尾。注意一下这个就好啦！
+这里还有一点要注意：
+new String(array,i,j)输出的是index 属于[i,j)的字符
+	public String removeSpaces(String input){
+		if (input.isEmpty()){
+			return input;
+		}
+		char[] array = input.toCharArray();
+		int end = 0;
+		for (int i = 0; i < array.length; i++){
+			if (array[i] == ' ' && (i == 0 && array[i] == ' ')){
+				continue;
+			}
+			array[end++] = array[i];
+		}
+		if (end > 0 && array[end - 1] == ' '){
+			return new String(array,0,end - 1);
+		}
+		return new String(array,0,end);
+	}
+	public String removeSpaces2(String input) {
+		if (input == null) {
+			return "";
+		}
+		char[] st = input.toCharArray();
+		return remove(st);
+	}
+这个是明确了的快慢指针做法。这里，我们先看是空格的时候，再看其他情况，同时，再fast超出的时候，及时跳出循环，不然slow后头又加了一个空格了！slow左边，不包括slow是我们要留下的。
+public String removeSpaces2(String input) {
+		if (input == null) {
+			return "";
+		}
+		char[] st = input.toCharArray();
+		return remove(st);
+	}
+
+	private String remove(char[] input) {
+		int slow = 0;
+		int fast = 0;
+		int wordCount = 0;
+		while (fast < input.length) {
+			while (fast < input.length && input[fast] == ' ') {
+				fast++;
+			}
+			if (fast == input.length){
+				break;
+			}
+			if (wordCount++ > 0){
+				input[slow++] = ' ';
+			}
+			while(fast < input.length && input[fast] != ' ') {
+				input[slow++] = input[fast++];
+			}
+			wordCount++;
+		}
+		
+		return new String(input, 0, slow);
+	}
+6.Remove Adjacent Repeated Characters I
+java solution的做法是左边，不包括自己：
+public String deDuo(String input){
+ 	if (input == null || input.length() <= 1){
+	      return input;
+	}
+	char[] array = input.toCharArray();
+	int end = 0;
+	for (int i = 0; i < array.length; i++){
+		if (i == 0 || array[i] != array[end - 1]){//感觉这里用的是end-1还是蛮难想的。
+			array[end++] = array[i];
+}
+}
+	return new String(array,0,end);
+	
+}
+我的方法：这里的慢指针的物理意义是，包含他左边包含自己都是我们要的。
+public String deDup(String input) {
+	    // Write your solution here.
+	    if (input == null || input.length() <= 1){
+	      return input;
+	    }
+	    char[] array = input.toCharArray();
+	    int slow = 0;
+	    int fast = 1;
+	    while (fast < array.length){
+	      if (array[slow] == array[fast]){
+	        fast ++;
+	      } else{
+	        array[++slow] = array[fast++];//小心这个地方slow是先加一加，再换！
+	      }
+	    }
+	    return new String(array,0,slow + 1);
+	  } 
+7.Remove Adjacent Repeated Characters II
+
+
+0.java solution的做法。快慢指针，利用for 循环的i做快指针
+用end作为stack的top，来模拟peek,poll操作。注意end左边包括end是我们要的。
+public String deDup3(String input){
+		char[] arr = input.toCharArray();
+		int end = 0;
+		for (int i = 0; i < arr.length; i++){
+			if (end == -1 || arr[end] != arr[i] ){//这里的写法自己要琢磨一下！end的取值！
+				arr[++end] = arr[i];
+			} else{
+				end--;//poll出来
+				while( i + 1 < arr.length && arr[i] == arr[i + 1]){//这一步依然要小心不要nullpointerexception！一定小心快指针！
+					i++;
+				}
+			}
+		}
+		return new String(arr,0,end + 1);
+	}
+
+1.这是stack的做法，deque确实好用！
+public class deDupII {
+	public String deDup(String input) {
+		Deque<Character> keep = new LinkedList<>();
+		Deque<Character> st = new LinkedList<>();
+		char[] arr = input.toCharArray();
+		for (char i : arr) {
+			st.offerLast(i);
+		}
+		while (!st.isEmpty()) {
+			char curr = st.pollFirst();
+			if (keep.isEmpty()){
+				keep.offer(curr);
+				continue;
+			}
+			if (curr != keep.peekLast()) {
+				keep.offerLast(curr);
+			} else {
+				while(!st.isEmpty() && curr == st.peekFirst()){//这里很容易忘记判断st是不是到最后了！
+					st.pollFirst();
+				}
+				keep.pollLast();
+			}
+
+		}
+		StringBuilder build = new StringBuilder();
+		while (!keep.isEmpty()) {
+			build.append(keep.pollFirst());
+		}
+		return build.toString();
+	}
+2.这是快慢指针的方法。slow左边包括slow是我们要的。
+	public String deDup2(String input){
+		char[] arr = input.toCharArray();
+		int slow = -1;
+		int fast = 0;
+		while (fast < input.length()){
+			if (slow == -1 || arr[slow] != arr[fast] ){
+				arr[++slow] = arr[fast++];
+				continue;
+			} else {
+				while(fast < input.length() && arr[slow] == arr[fast]){//这里很容易忘记判断nullpoiterexception
+					fast++;
+				}
+				slow--;
+			}
+		}
+		return new String(arr,0,slow + 1);
+	}
+	public static void main(String[] args){
+		String s = "aabcccd";
+		deDupII solu = new deDupII();
+		System.out.println(solu.deDup2(s));
+	}
+}
+8.find substring
+package String;
+
+import java.util.HashMap;
+import java.util.Map;
+
+public class subString {
+	//下面是用rabin karp思想去做的（就是对于目标字段先做hash,然后在去大的string里去找匹配的hash，找到后再逐个字符比较一下），但我写的和java solution在于算hash的地方不一样，应该是得用mod，不然数字就太大啦！这个mod的过程还需要研究！
+	//其他思路就是这样，但是有一点我没有写的是，即使
+	//hash对上了，还是需要再检测一下所有字符。
+	public int strstr(String large, String small){
+		if (large.length() < small.length()){
+			return -1;
+		}
+		if (small.length() == 0) {
+			return 0;
+		}
+		
+		Map<Character, Integer> dic = new HashMap<>();
+		for (int i = 0; i <= 94; i++) {
+			Character curr = new Character((char) (' ' + i));
+			dic.put(curr, i+1);
+		}
+		int n = large.length();
+		int m = small.length();
+		char[] big = large.toCharArray();
+		char[] tiny = small.toCharArray();
+		long hashS = hashString(tiny,dic,0,m);
+		for (int i = 0; i <= n - m; i++){
+			if (equals(hashS,i,m,big,dic)){
+				return i;
+			}
+		}
+		return -1;
+	}
+	private boolean equals(long hashS, int i, int m, char[] big,Map<Character, Integer> dic){
+		long hashB = hashString(big,dic,i,i+m);
+		if (hashB == hashS && equals(large,small,i)//双重保险验证！
+){
+			return true;
+		}
+		return false;
+	}
+	private long hashString(char[] input, Map<Character, Integer> dic, int start, int end){
+		long sum = 0;
+		for (int i = start; i < end; i++){
+			long curr = 1;
+			for (int j = end - 1; j > i; j--){
+				curr = curr * 26;
+			}
+			curr = curr * dic.get(input[i]);
+			sum += curr;
+		}
+		return sum;
+		
+	}
+javasolution的方法一
+	public int strstr2(String large, String small){
+		//这个方法，和我自己写的是一样的，但是简洁一些，不需要用数组，直接用charat!
+		if (large.length() < small.length()){
+			return -1;
+		}
+		if (small.length() == 0) {
+			return 0;
+		}
+		int n = large.length();
+		int m = small.length();
+		for (int i = 0; i <= n - m; i++){
+			if (equals(large,small,i)){//比较的过程，直接用一个函数来写，这样会好看很多
+				return i;
+			}
+		}
+		return -1;
+	}
+	private boolean equals(String large, String small, int num){
+		for (int i = 0; i < small.length(); i++){
+			if (large.charAt(i+num) != small.charAt(i)){
+				return false;
+			}
+		}
+		return true;
+	}
+//下面是我写的。
+	public int strstr3(String large, String small) {
+		if (small.length() == 0) {
+			return 0;
+		}
+		char[] big = large.toCharArray();
+		char[] tiny = small.toCharArray();
+		int slow = 0;
+		int fast = 0;
+		while (fast <= big.length - tiny.length) {//fast在这里既是我的出发点，又是我的终止点。。当然作为出发点，不需要走完！
+			if (big[fast] == tiny[0]) {
+				slow = fast;
+				for (int i = 0; i < tiny.length; i++) {
+					if (fast < big.length && big[fast] == tiny[i]) {
+						fast++;
+					} else {
+						break;
+					}
+					if (i == tiny.length - 1){
+						return slow;
+					}
+				}
+				fast = slow;
+			}
+			fast++;
+		}
+		return -1;
+	}
+	public static void main(String[] args){
+		String l = "bAaaaaaaa";
+		String s = "Aa";
+		subString solu = new subString();
+		System.out.println(solu.strstr(l, s));
+	}
+}
+8.Longest Ascending SubArray--DP
+一定要明确m[i]的物理意义是什么！这道题，m[i]表示的是包括i-th这个点，从0开始，最长的升序子数组。 
+public int longest(int[] array) {
+    // Write your solution here.
+    if (array == null || array.length == 0){
+      return 0;
+    
+    int[] m = new int[array.length];
+    m[0] = 1;
+    int max = 1;
+    for (int i = 1; i < array.length; i++){
+      if (array[i - 1] < array[i] ){
+        m[i] = m[i - 1] + 1; 
+        max = Math.max(max,m[i]);
+      } else {
+        m[i] = 1;
+      
+    
+    return max;
+  
+9.Max Product Of Cutting Rope--DP
+m[i]表示的是i米长的绳子的最大product，至少切一刀。
+public int maxProduct(int length) {
+    int max = 1;
+    int[] m = new int[length + 1];
+    //m[i] represents the max product of cutting i meter rope at least one cut
+    //then m[1] is 0 , because 0 *1 = 0
+    m[1] = 0;
+    m[2] = 1;
+    for (int i = 3; i < length + 1; i++){
+      for (int j = 1; j <= i/2; j++ ){
+        //j represents the length of right segment of the rope
+        //we put no cut case here as i - j.
+        m[i] = Math.max(m[i],j * Math.max(i - j,m[i - j]));
+      
+      max = Math.max(max,m[i]);
+    
+    return max;最后也可以return m[length];
+}
+10.jump game-array hooper-dp
+package DP;
+
+public class arrayHopperI {
+	//这个方法是从右往左的看，思路比较清晰。m[i] means from index i if it can jump to index array.length - 1
+	public boolean canJump(int[] array) {
+		// Write your solution here.
+		if (array == null || array.length <= 1) {
+			return true;
+		}
+		boolean[] m = new boolean[array.length];
+		for (int i = array.length - 2; i >= 0; i--) {
+			if (array[i] + i >= array.length - 1){
+				m[i] = true;
+			} else {
+				for (int j = array[i]; j >=  1; j--){
+					if (m[j + i]){
+						m[i] = true;
+						break;
+					}
+				}
+			}
+		}
+		return m[0];
+	}
+	//下面的方法是不太一样的,m[i] means from index 0, if it can jump to index i。这个方法回头看的是能不能到一个能够到点i的点j。
+	public boolean canJump2(int[] array){
+		if (array == null || array.length <= 1) {
+			return true;
+		}
+		boolean[] m = new boolean[array.length];
+		m[0] = true;//0 可以到 0
+		for (int i = 1; i < array.length; i++){
+			for (int j = 0; j < i; j++){
+				if (m[j] && j + array[j] >= i){
+					m[i] = true;
+					break;
+				}
+			}
+		}
+		return m[array.length - 1];
+	}
+	public static void main(String[] args){
+		int[] array = {2,1,1,0,2};
+		int[] array2 = {4,2,1,2,0,0};
+		arrayHopperI solu = new arrayHopperI();
+		System.out.println(solu.canJump2(array2));
+	}
+}
+贪心的方法：
+//方法3：贪心算法，省空间！
+	public boolean canJump3(int[] array){
+		if (array == null || array.length <= 1) {
+			return true;
+		}
+		int curr = 0;//当前数字可以走的最远的index
+		int next = 0;//当前位置+1数字能走的最远的index
+		for (int i = 0; i < array.length; i++){
+			if (i > curr){
+				if (curr == next){//如果两者相等了，那么永不能到i了！
+					return false;
+				}
+				curr = next;//curr变到下一个去试一试行不行！
+			}
+			next = Math.max(next, array[i] + i);
+		}
+		return true;
+	}
+
+10-2.Array Hooper II -- dp
+这个方法也是从右往左看。jump[i]的意义是the min steps from i index to the end.
+public int minJump(int[] array) {
+		if (array == null || array.length == 0) {
+			return -1;
+		}
+		int[] jump = new int[array.length];
+		
+		jump[array.length - 1] = 0;
+		for (int i = array.length - 2; i >= 0; i--) {
+			jump[i] = -1;//我一开始把这个放在外面出事话，其实不需要。
+			if (array[i] + i >= array.length - 1) {
+				jump[i] = 1;
+			} else {
+				for (int j = array[i]; j >= 1; j--) {
+					if (jump[j + i] >= 0) {
+						if (jump[i] == -1 || jump[i] > jump[j + i] + 1) {//这是看了java solution之后改进的写法，更加简练。
+							jump[i] = jump[j + i] + 1;
+						} 
+					}
+				}
+			}
+		}
+		return jump[0];
+	}
+}
+这道题的方法很多，也可以从左往右：
+public int minJump2(int[] array){
+		if (array == null || array.length == 0) {
+			return -1;
+		}
+		int[] jump = new int[array.length];
+		jump[0] = 0;
+		for (int i = 1; i < array.length; i++){
+			jump[i] = -1;
+			for (int j = i - 1; j >= 0; j--){
+				if (array[j] + j >= i && jump[j] != -1){
+					if (jump[i] == -1 || jump[i] > jump[j] + 1){
+						jump[i] = jump[j] + 1;
+					}
+				}
+			}
+		}
+		return jump[array.length - 1];
+	}
+}
+贪心的算法：只需要改一下红色的字！太强悍了！
+public int minJump3(int[] array) {
+		if (array == null || array.length <= 1) {
+			return 0;
+		}
+		int jumps = 0;
+		int curr = 0;// 当前数字可以走的最远的index
+		int next = 0;// 当前位置+1数字能走的最远的index
+		for (int i = 0; i < array.length; i++) {
+			if (i > curr) {
+				jumps++;//主需要加这样一句！因为这时候我们不能立即跳到，那么久需要加一步！！很厉害！
+				if (curr == next) {// 如果两者相等了，那么永不能到i了！
+					return -1;
+				}
+				curr = next;// curr变到下一个去试一试行不行！
+				
+			}
+			next = Math.max(next, array[i] + i);
+		}
+		return jumps;
+	}
+}
+
+
+
+11.print if block--dfs
+这道题目，是一个dfs的permutation的题目，用char[]会比较方便去做，因为后期我们还需要print空格，这样更加方便一些。
+public class ifBlock {
+	public void ifBlocks(int n) {
+		char[] array = new char[2 * n];
+		allPermu(array, 0, 0, 0);
+	}
+
+	private void allPermu(char[] array, int countL, int countR, int row) {
+		if (countL + countR == array.length) {
+			printIt(array);
+			return;
+		}
+		if (countL < array.length / 2) {
+			array[row] = '{';
+			allPermu(array, countL + 1, countR, row + 1);//这里不需要删除哪些字母，因为是permutation，后期覆盖就好！不是subset的题。
+		}
+		if (countL > countR) {
+			array[row] = '}';
+			allPermu(array, countL, countR + 1, row + 1);
+		}
+	}
+
+	private void printIt(char[] array) {
+		int countL = 0;
+		int countR = 0;
+		int heading = 0;
+		for (char i : array) {
+			if (i == '{') {
+				heading = 2 * (countL - countR);
+				for (int j = 0; j < heading; j++) {
+					System.out.print(' ');
+				}
+				System.out.println("if{");
+				countL++;
+			}
+			if (i == '}') {
+				countR++;
+				heading = 2 * (countL - countR);
+				for (int j = 0; j < heading; j++) {
+					System.out.print(' ');
+				}
+				System.out.println('}');
+			}
+		}
+	}
+	
+	public static void main(String[] args){
+		ifBlock solu = new ifBlock();
+		solu.ifBlocks(2);
+	}
+}
+time complexity:O(2^2n * n^2) for the recursion tree, we have 2n levels, so on the last level we have 2^2n nodes and this can regard as the time complexity for the main recursion. Then we also have two for loops to print our result which multiply a n^2 time complexity.
+12.palindrome partition--DP
+这道题目我掌握的很不好，首先思路上，这是一维DP的题目，那么我们站在每一个字母上，都需要回头看一看所有的substring是不是palindrome，然后寻找切的最少刀数的。
+那么这里的induction rule就是minCut[i]表示的是i长度的字符串，每一段都是palindrome的最少切的刀数。我们这里用的数组会是大一个长度的，这样看着方便一些！最后返回的必定是minCut[n]。最后的时间复杂度是O（n^2），我们是以额外的boolean[][]的空间换来了时间。不然的话，每次循环里还得循环着确认是不是palindrome，就像第三种方法，时间会是O（n^3）。
+然后构建数组的时候，我们多给一个空间，其实这样写起来也很方便啊，就是在循环里，可以直接是1和<=n就可以了，唯一需要注意的是，我们访问字符串或者char[]的时候，记得-1就可以了。
+package DP
+
+public class cutPalindrome {
+	public int cut3(String input){
+		int n = input.length();
+		int[] minCut = new int[n + 1];
+		boolean[][] isPalin = new boolean[n + 1][n + 1];
+		for (int i = 1; i <= n; i++){//i指的是站着的字母，回头看，先看是不是palindrome,如果是palindrome,就记下true。确认完了substring的isPalin之后，开始看最小的刀数，直到遍历完所有可能的substring。
+			minCut[i] = Integer.MAX_VALUE;
+			for (int j = i; j >=1; j--){//其实这里有两个过程，第一个方法把两个过程合在了一起！特别厉害！只要我们保证，之后看substring的时候，isPalin都已经做好了就可以！从最右端开始，不停一个character一个char得往左延伸substring。
+				if (i - j <= 1){
+					isPalin[j][i] = (input.charAt(i - 1) == input.charAt(j - 1));
+				} else {
+					isPalin[j][i] = (input.charAt(i - 1) == input.charAt(j - 1)) && (isPalin[j + 1][i - 1]);//这里看的isPalin都是已经生成的了！不用担心没有可以回头看的元素。
+				}
+				
+				if (isPalin[j][i]){
+					if (j == 1){//这里需要特别注意，j是1的时候，算是一整个string，那么就是0
+						minCut[i] = 0;
+					} else {
+						minCut[i] = Math.min(minCut[i], 1 + minCut[j - 1]);//每次是true的时候，都更新一下minCut[i]
+					}
+				}
+			}
+		}
+		return minCut[n];
+	}
+	这个方法，是把两个过程分开来，看的更加清晰。
+	public int cut(String input){
+		int n = input.length();
+		int[] minCut = new int[n + 1];
+		minCut[1] = 0;
+		boolean[][] isPalin = new boolean[n + 1][n + 1];//isPalin means a substring from [] to [] if it's a palindrome
+		//every character itself is a palindrome
+		/*
+		for (int i = 1; i <= n; i++){
+			isPalin[i][i] = true;
+		}
+		*/
+		//populate all the boolean array so we can scan back when we need to verify
+		for (int i = 1; i <= n; i++){
+			minCut[i] = i;
+			//先填充isPalin，填完之后，所有的substring都已经知道是不是palindrome,我们就可以放心地遍历，然后计算最小的刀数
+			for (int j = i; j >=1; j--){
+				if (i - j <= 1){
+					isPalin[j][i] = (input.charAt(i - 1) == input.charAt(j - 1));
+				} else {
+					isPalin[j][i] = (input.charAt(i - 1) == input.charAt(j - 1)) && (isPalin[j + 1][i - 1]);
+				}
+			}
+			其实这里完全可以用一个for代替，因为我这里遍历的只是顺序不一样哈哈，一个是从最后往前，一个是从前往后。
+			for (int j = 1; j <= i; j++){
+				if (isPalin[1][i]){
+					minCut[i] = 0;
+					break;
+				}
+				if (isPalin[j][i]){
+					minCut[i] = Math.min(minCut[i], 1 + minCut[j]);
+				}
+			}
+			
+		}
+		/*或者把循环拿出来也是一样的
+		for (int i = 1; i <= n; i++){
+			minCut[i] = i;
+			for (int j = 1; j <= i; j++){
+				if (isPalin[1][i]){
+					minCut[i] = 0;
+					break;
+				}
+				if (isPalin[j][i]){
+					minCut[i] = Math.min(minCut[i], 1 + minCut[j]);
+				}
+			}
+		}
+		*/
+		return minCut[n];
+	}
+下面的方法是N^3。专门有一个函数去验证是不是palindrome。
+	public int cut2(String input) {
+		char[] st = input.toCharArray();
+		int[] minCut = new int[st.length];
+		minCut[0] = 0;
+		for (int i = 1; i < st.length; i++) {
+			if (isPalindrome(0,i,st)){
+				minCut[i] = 0;
+				continue;
+			}
+			minCut[i] = i;
+			for (int j = 0; j < i; j++) {//go through every possible right substring
+				if (isPalindrome(j + 1, i, st)) {
+					minCut[i] = Math.min(minCut[i], minCut[j] + 1);
+				}
+			}
+		}
+		return minCut[st.length - 1];
+	}
+
+	public boolean isPalindrome(int start, int end, char[] input) {
+		while (start <= end) {
+			if (input[start] != input[end]) {
+				return false;
+			}
+			start++;
+			end--;
+		}
+		return true;
+	}
+	public static void main(String[] args){
+		String s = "ababbbabbababa";
+		cutPalindrome solu = new cutPalindrome();
+		System.out.println(solu.cut3(s));
+	}
+
+}
+13.remove a certain character -- String
+package String;
+
+import java.util.*;
+
+public class removeAChar {
+	public String remove(String input, String t) {
+		if (t == null) {
+			return input;
+		}
+		if (input == null) {
+			return "";
+		}
+		char[] word = t.toCharArray();
+		char[] in = input.toCharArray();
+		Set<Character> wordSet = new HashSet<>();
+		for (char i : word){
+			wordSet.add(i);
+		}
+		int fast = 0;
+		int slow = 0;
+		//其实这里写一个for loop更好，因为每次fast都要++，而且只有在set里才会操作。
+		while (fast < in.length) {
+			if (wordSet.contains(in[fast])) {
+				fast++;
+			} else {
+				in[slow] = in[fast];
+				slow++;
+				fast++;
+			}
+		}
+		return new String(in, 0, slow);
+	}
+	public static void main(String[] args){
+		removeAChar test = new removeAChar();
+		String input = "abbcdde";
+		String t = "bc";
+		System.out.println(test.remove(input, t));
+	}
+
+}
+14、15.reverse a string/sentence I -- String
+这个是我写的方法，function多了一些，而且空间复杂度多了不少，因为用了好多数组和stringBuilder，效率不高。只需要看下一个解法即可，省去stringBuilder抽出每一个单词的步骤，然后就在原地翻转每一个单词！！！非常机智！
+import java.util.*;
+
+public class iLoveYahoo {
+	public String reverseWords(String input) {
+		// This solution  is not good, because I use tooo many functions here.
+		//Actually, I can reverse each word just in the array.
+		if (input == null) {
+			return "";
+		}
+		input = reverse(input);
+		ArrayList<String> str = new ArrayList<>();
+		changeToArray(str, input);
+		StringBuilder sBuild = new StringBuilder();
+		for (String i : str) {
+			sBuild.append(reverse(i));
+			sBuild.append(" ");
+		}
+		return sBuild.substring(0, sBuild.length() - 1);
+	}
+	//reverse a string在这个地方！
+	private String reverse(String st) {
+		int head = 0;
+		int tail = st.length() - 1;
+		char[] charSt = st.toCharArray();
+		while (head <= tail) {
+			swap(head, tail, charSt);
+			head++;
+			tail--;
+		}
+		return new String(charSt, 0, charSt.length);
+	}
+
+	private void swap(int a, int b, char[] st) {
+		char tmp = st[a];
+		st[a] = st[b];
+		st[b] = tmp;
+
+	}
+
+	private void changeToArray(ArrayList<String> str, String input) {
+		for (int i = 0; i < input.length(); i++) {
+			if (input.charAt(i) != ' ') {
+				StringBuilder sBuild = new StringBuilder();
+				while (i < input.length() && input.charAt(i) != ' ') {
+					sBuild.append(input.charAt(i));
+					i++;
+				}
+				str.add(sBuild.toString());
+			}
+		}
+	}
+	public static void main(String[] args){
+		String st = "an apple";
+		iLoveYahoo test = new iLoveYahoo();
+		System.out.println(test.reverseWords(st));
+	}
+}
+16.reverse a sentence II -- string
+这是更好的解法。先翻转整个句子，然后遍历一遍，记录下需要翻转的start和end，再翻转即可！
+package String;
+
+public class iLoveGoogleBetter {
+	public String reverseWords(String input){
+		if (input == null) {
+			return "";
+		}
+		char[] st = input.toCharArray();
+		reverseHelper(st, 0, st.length - 1);
+		//接下来我们原地翻转！其实不需要while循环也可以！只需哟先记下start的位置，然后继续循环，等找出end的位置，再reverse,也是很好的
+		for (int i = 0; i < st.length; i++){
+			if (st[i] != ' '){
+				int start = i;
+				int end = i;
+				while(i + 1 < st.length && st[i + 1] != ' '){
+					end++;
+					i++;
+				}
+				reverseHelper(st,start,end);
+			}
+		}
+		return new String(st, 0, st.length);
+	}
+	private void reverseHelper(char[] st, int left, int right){
+		if (left > right){
+			return;
+		}
+		reverseHelper(st, left+1, right-1);
+		swap(left,right,st);
+	}
+	private void swap(int a, int b, char[] st) {
+		char tmp = st[a];
+		st[a] = st[b];
+		st[b] = tmp;
+
+	}
+	public static void main(String[] args){
+		String st = "I LOVE GOOGLE";
+		iLoveGoogleBetter test = new iLoveGoogleBetter();
+		System.out.println(test.reverseWords(st));
+	}
+}
+17.right shift n characters -- string
+两次翻转即可。
+public class rightShiftN {
+	public String rightShift(String input, int n) {
+		
+		if (input.length() == 0) {
+			return input;
+		}
+		char[] str = input.toCharArray();
+		//注意n可能比较大，需要mod。而且，这里我们直接找准位置翻转即可。
+		n = n % str.length;
+		reverse(str, str.length - n, str.length - 1);
+		reverse(str, 0, str.length -n - 1);
+		reverse(str, 0, str.length - 1);
+		return new String(str, 0, str.length);
+	}
+
+	private void reverse(char[] str, int left, int right) {
+		while (left > right) {
+			return;
+		}
+		reverse(str, left + 1, right - 1);
+		char tmp = str[left];
+		str[left] = str[right];
+		str[right] = tmp;
+		return;
+	}
+	public static void main(String[] args) {
+		String s = "abc";
+		rightShiftN solu = new rightShiftN();
+		System.out.println(solu.rightShift(s, 10));
+	}
+}
+18.replace a string -- string
+用string t 去替代input里面的string s。这道题我做了很久没做对，看了答案后，发觉多多写function的重要性，因为这里有好多重复使用到的函数，例如copyString和isMatch,写成函数就很简洁明了！！一定要这样做。然后这道题要注意的就是，需要分成两个case来做，一个是s的长度不小于t，这个很方便，两个指针遍历一下替换掉就好（slow的左边，不包括slow都是我们要的，fast和slow之间都是我们不要的，fast的右边，不包括fast是未知区域）。另一个是s的长度小于t，那么这时候，我们就需要扩展数组的长度了！所以要先调用一个函数计算一下出现的次数，这里很巧妙的是直接就记录下那些需要替换的起始点（右边界）（lastIndex）。而且还有一个窍门在于，slow和fast这次都从字符串的最右边开始向左进发，保证的是slow始终会在fast的右边（后面）。
+import java.util.*;
+public class replace {
+	public String replaceString(String input, String s, String t) {
+		char[] str = input.toCharArray();
+		if (s.length() >= t.length()) {
+			return (replaceShort(str, s, t));
+		} else {
+			return (replaceLong(str, s, t));
+		}
+	}
+	private String replaceShort(char[] str, String s, String t) {
+		int slow = 0;
+		int fast = 0;
+		while (fast < str.length){
+			if (fast <= str.length - s.length() && isMatch(str, s, fast)){
+				copyString(str,t,slow);
+				slow += t.length();
+				fast += s.length();
+			}else{
+				str[slow++] = str[fast++];
+			}
+		}
+		return new String(str, 0, slow);
+	}
+	private boolean isMatch(char[] str, String s, int start){
+		for (int i = 0; i < s.length(); i++){
+			if (str[start + i] != s.charAt(i)){
+				return false;
+			}
+		}
+		return true;
+	}
+	private void copyString(char[] str, String t, int start){
+		for (int i = 0; i < t.length(); i++){
+			str[start + i] = t.charAt(i);
+		}
+	}
+	private String replaceLong(char[] str, String s, String t){
+		List<Integer> matches = countS(str, s);
+		//first we should make a new char[]
+		char[] newStr = new char[str.length + matches.size() * (t.length() - s.length())];
+		int slow = newStr.length - 1;//在新的数组上动
+		int fast = str.length - 1;//在老的数组上动
+		int lastIndex = matches.size() - 1;//调用我们所知道的需要替换的位置！这一招很厉害
+		while (fast >= 0){
+			if (lastIndex >= 0 && fast == matches.get(lastIndex)){
+				copyString(newStr, t, slow - t.length() + 1);
+				slow -= t.length();
+				fast -= s.length();
+				lastIndex--;
+			} else {
+				newStr[slow--] = str[fast--];
+			}
+		}
+		return new String(newStr, 0, newStr.length);
+	}
+	private List<Integer> countS(char[] str, String s){
+		List<Integer> matches = new ArrayList<>();
+		//注意这个地方，i要小于原来字符串减去被替换的字符串长度，不然的话，检测isMatch的时候，可能会outofbound。因为我后面没有限制start + i小于str的长度。这里限制住就够了，而且逻辑也很清晰。
+		for (int i = 0; i < str.length - s.length() + 1; i++){
+			if (isMatch(str, s, i)){
+				matches.add(i + s.length() - 1);//matches记录了这段符合的字符串的右边界位置，因为我们后面是从右边开始遍历的
+				i+= s.length() - 1;//注意这里要-1,因为进入下一个循环后，会自动+1了。如果用while循环，那就不必减了。只是其他时候要加上1。
+			}
+		}
+		return matches;
+	}
+	public static void main(String[] args){
+		String s = "a";
+		String t = "bb";
+		String input = "aaa";
+		
+		replace test = new replace();
+		System.out.println(test.replaceString(input, s, t));
+	}
+
+}
+19.Encode a string--string
+“a1c0b2c4” ←  “abbcccc”这道题的做法是根据课件自己写的，所以可能不是最优解。但是方法是通的，就是利用快慢指针去遍历。注意的是，string也可能变成变短，所以那种情况需要额外考虑一下，所以我们第一遍遍历的时候，先不动会变成的情况，这种情况其实就是一个字母的时候（这道题默认连续数字不超过9个，这样好做一些），然后最后再把有一个字母的情况做处理，就是先新建一个长一点的char[]，然后从尾部开始，注意只要是长度变成长的，我们都从尾部开始遍历。
+package String;
+
+public class encode {
+	public String decompress(String input) {
+		if (input == null || input.length() == 0) {
+			return input;
+		}
+		int slow = 0;
+		int fast = 0;
+		int countSingle = 0;
+		char[] str = input.toCharArray();
+		while (fast < str.length) {
+			if (fast < str.length - 1 && str[fast] == str[fast + 1]) {
+				int count = countConsecutive(str, fast, str[fast]);
+				str[slow++] = str[fast];
+				str[slow++] = (char) (count + '0');//数字变成char！注意写法！！
+				fast = fast + count;
+			} else {
+				countSingle++;
+				str[slow++] = str[fast++];
+			}
+		}
+		String newS = new String(str, 0, slow);
+		if (countSingle > 0) {
+			char[] newStr = newS.toCharArray();
+			newS = remedy(newStr, countSingle);
+		}
+		return newS;
+	}
+
+	private int countConsecutive(char[] input, int start, char target) {
+		for (int i = start; i < input.length; i++) {
+			if (input[i] != target) {
+				return i - start;
+			}
+		}
+		return input.length - start;
+	}
+
+	private String remedy(char[] str, int count) {
+		char[] newS = new char[str.length + count];
+		int slow = newS.length - 1;
+		int fast = str.length - 1;
+		while (fast >= 0) {
+			if (str[fast] > '0' && str[fast] <= '9') {
+				newS[slow--] = str[fast--];
+				newS[slow--] = str[fast--];
+			} else {
+				newS[slow--] = '1';
+				newS[slow--] = str[fast--];
+			}
+		}
+		return new String(newS);
+	}
+	public static void main(String[] args){
+		String s = "bbaacb";
+		encode test = new encode();
+		System.out.println(test.decompress(s));
+	}
+
+}
+20.decode-string
+
+这道题的解法，如果是inplace的，会比较麻烦，主要就是考察字符串操作，快慢指针，分析case的能力。基本上理清变长和变短两种可能性里指针是怎么动的，就很简单了。简单的方法就是用一个StringBuilder。
+
+public class decode {
+	public String decompress(String input) {
+		if (input == null || input.length() == 0) {
+			return input;
+		}
+		char[] str = input.toCharArray();
+		boolean[] flag = new boolean[1];
+		int countL = count(str, flag);
+		if (flag[0]) {
+			deco(str);
+		} else {
+			str = deco(str, countL);
+		}
+		return new String(str, 0, countL);
+	}
+
+	private char[] deco(char[] input, int len) {
+		char[] newS = new char[len];
+		int slow = newS.length - 1;
+		int fast = input.length - 1;
+		while (fast >= 1) {
+			int count = input[fast] - '0';
+			if (count > 0) {
+				addChar(count, newS, input[fast - 1], slow - count + 1);
+				slow = slow - count;
+			}
+			fast = fast - 2;
+		}
+		return newS;
+	}
+
+	private int count(char[] str, boolean[] flag) {
+		int index = 1;
+		int sum = 0;
+		while (index < str.length) {
+			int curr = str[index] - '0';//char变成int要注意！
+			sum += curr;
+			if (curr > 2) {
+				flag[0] = false;
+			}
+			index += 2;
+		}
+		return sum;
+	}
+
+	private void deco(char[] input) {
+		int slow = 0;
+		int fast = 0;
+		while (fast < input.length - 1) {
+			int count = input[fast + 1] - '0';
+			if (count <= 0) {
+				fast = fast + 2;
+			} else if (count > 0 && count <= 2) {
+				addChar(count, input, input[fast], slow);
+				slow = slow + count;
+				fast = fast + count;
+			}
+		}
+	}
+
+	private void addChar(int num, char[] input, char target, int start) {
+		for (int i = 0; i < num; i++) {
+			input[start + i] = target;
+		}
+	}
+	//method 2 :stringBuilder
+	public String decom(String input){
+		if (input == null || input.length() == 0) {
+			return input;
+		}
+		StringBuilder sb = new StringBuilder();
+		char[] str = input.toCharArray();
+		for (int i = 0; i < str.length; i++){
+			char c = str[i++];
+			int num = str[i] - '0';
+			for (int j = 0; j < num; j++){
+				sb.append(c);
+			}
+		}
+		return sb.toString();
+	}
+	public static void main(String[] args){
+		String s = "a0a1b3b4c1";
+		decode test = new decode();
+		System.out.println(test.decom(s));
+	}
+
+}
+21.Longest Substring Without Repeating Characters
+
+这道题不是很难，就用一个hashset记录一下，然后像一个滑窗一样移动。注意的是，这里可以放心的往下移动，因为如果一直没把重复的字母删掉，那么都不会走向另一个分支，可以一直走到把重复字母删掉。
+public class Longest {
+	public int longest(String input) {
+		if (input == null || input.length() == 0) {
+			return 0;
+		}
+		char[] ch = input.toCharArray();
+		Set<Character> chSet = new HashSet<>();
+		int slow = 0;
+		int fast = 0;
+		int max = 0;
+		while (fast < ch.length) {
+			if (!chSet.contains(ch[fast])) {
+				chSet.add(ch[fast++]);
+				max = Math.max(max, fast - slow);
+			} else {
+				//这里不需要用一个循环去找到重复的那个元素，因为会一直重复而不进入上面那个分支，所以会一直删除不需要的元素!机智！
+				chSet.remove(ch[slow++]);					
+			}
+		}
+		return max;
+	}
+	public static void main(String[] args){
+		Longest test = new Longest();
+		String s = "bcdeeffedscdascfewfjwdlifjoa";
+		System.out.println(test.longest(s));
+	}
+
+}
+22.reorder array -- string
+这道题的原理其实就是iloveyahoo的recursion版。就是计算分割点特别难。
+package String;
+
+public class reorderArray {
+	public int[] reorder(int[] array) {
+		if (array == null || array.length == 0) {
+			return new int[1];
+		}
+		if (array.length % 2 == 0) {
+			convert(array, 0, array.length - 1);
+		} else {
+			convert(array, 0, array.length - 2);
+		}
+		return array;
+	}
+
+	private void convert(int[] array, int left, int right) {
+		if (right - left <= 1) {
+			return;
+		}
+		int size = right - left + 1;
+		// 好像先求个size会比较方便计算中点，中点的计算真的很难，建议举两个例子自己找规律。其实只要保证我们reverse的长度中，第一段和第三段相等就可以，如果偶数，很显然，如果奇数，需要探索一下。。只要能让ABCDE12345→
+		// AB12CDE345就可以！！！这样就继续下去recursion就行！因为已经变成了小一号的问题了。
+		int mid = left + size / 2;
+		int leftMid = left + size / 4;
+		int rightMid = left + size * 3 / 4;
+		reverse(array, leftMid, mid - 1);
+		reverse(array, mid, rightMid - 1);
+		reverse(array, leftMid, rightMid - 1);
+		convert(array, left, left + (leftMid - left)* 2-1);
+		convert(array, left + (leftMid - left) * 2, right);
+	}
+
+	private void reverse(int[] array, int left, int right) {
+		while (left < right) {
+			int tmp = array[right];
+			array[right] = array[left];
+			array[left] = tmp;
+			left++;
+			right--;
+		}
+	}
+	public static void main(String[] args){
+		int[] a = {0,1,2,3,4,5,6,7};
+		reorderArray test = new reorderArray();
+		test.reorder(a);
+		for (int i : a){
+			System.out.print(i);
+		}
+	}
+
+}
+23.Nqueens--recursion
+这道题是第二次期中考试的题目。基本上没有什么问题了，注意的是arraylist访问元素是用get()。不过java solution 有第二种方法，以空间换时间，就是用三个boolean array去记录哪些栏，哪些对角线和反对角线已经有元素占据了，（同一条对角线上，column + row是一样的！！！），这样对于验证是不是会相互攻击，就只需要O(1)时间查询数组了！还是很不错的方法。原来的方式，时间复杂符比较高是O（n!）
+
+import java.util.*;
+
+public class Nqueens {
+	public List<List<Integer>> nqueens(int n) {
+		List<List<Integer>> output = new ArrayList<>();
+		List<Integer> curr = new ArrayList<>();
+		if (n > 0){
+			nQ(0, n, output, curr);
+		}
+		return output;
+	}
+
+	private void nQ(int index, int n, List<List<Integer>> output, List<Integer> curr) {
+		if (index == n) {
+			output.add(new ArrayList<Integer>(curr));
+			return;
+		}
+		for (int i = 0; i < n; i++) {
+			if (validQ(i, curr, index)) {
+				curr.add(i);
+				nQ(index + 1, n, output, curr);
+				curr.remove(index);
+			}
+		}
+	}
+
+	private boolean validQ(int a, List<Integer> curr, int index) {
+		for (int i = 0; i < index; i++) {
+			if ((Math.abs(a - curr.get(i)) -(index - i)) == 0 
+					|| a == curr.get(i)) {
+				return false;
+			}
+		}
+		return true;
+	}
+	public static void main(String[] args){
+		Nqueens test = new Nqueens();
+		System.out.println(test.nqueens(4));
+	}
+
+}
+24.spiral traverse I 
+这道题就是关注一下，自己这层要做什么事，然后再到下一层做一样的事情，所以用recursion比较方便，唯一搞了很久的是，当n是奇数或1的时候，base case和元素是偶数不一样。所以base case是有俩，而且操作略有不同。其实就是说，剩下的元素个数是1或0时，操作不同。
+import java.util.*;
+
+public class spiral1 {
+	public List<Integer> spiral(int[][] matrix) {
+		if (matrix == null || matrix.length == 0) {
+			return new ArrayList<Integer>();
+		}
+		List<Integer> output = new ArrayList<>();
+		return spiralTra(matrix, 0, output);
+	}
+
+	private List<Integer> spiralTra(int[][] matrix, int index, List<Integer> result) {
+		if (matrix.length - index * 2 == 1){
+			result.add(matrix[index][index]);
+			return result;
+		}
+		if (matrix.length - index * 2 == 0){
+			return result;
+		}
+		/*
+		下面这个是我写的base case，其实意思是一样的。
+		if (matrix.length % 2 == 0 && matrix.length - index - 2 < 0){
+				return result;
+		}
+		if (matrix.length % 2 == 1 && index * 2 + 1 == matrix.length){
+			result.add(matrix[index][index]);
+			return result;
+		}
+		*/
+		
+		for (int i = index; i < matrix.length - index - 1; i++) {
+			result.add(matrix[index][i]);
+		}
+		for (int i = index; i < matrix.length - index - 1; i++) {
+			result.add(matrix[i][matrix.length - 1 - index]);
+		}
+		for (int i = matrix.length - 1 - index; i > index; i--) {
+			result.add(matrix[matrix.length - 1 - index][i]);
+		}
+		for (int i = matrix.length - 1 - index; i > index; i--) {
+			result.add(matrix[i][index]);
+		}
+		return spiralTra(matrix, index + 1, result);
+	}
+	public static void main(String[] args){
+		int[][] m = {{1,3,4,5},{1,3,4,5},{1,3,4,5},{1,3,4,5}};
+		spiral1 test = new spiral1();
+		System.out.println(test.spiral(m));
+	}
+
+}
+25.spiral traverse II--recursion
+这题，就是改一下长度，以及base case，要考虑只剩一行或者一列的情况，其他都差别不大，这里我用了size来处理，这样处理起来也很方便，就是传入的参数多了一些。
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class spiral2 {
+	public List<Integer> spiral(int[][] matrix) {
+		if (matrix == null || matrix.length == 0) {
+			return new ArrayList<Integer>();
+		}
+		List<Integer> output = new ArrayList<>();
+		return spiralTra(matrix, 0,matrix.length,matrix[0].length, output);
+	}
+
+	private List<Integer> spiralTra(int[][] matrix, int index, int rowSize, int colSize,List<Integer> result) {
+		int rows = matrix.length;
+		int cols = matrix[0].length;
+		
+		if (rowSize <= 0 || colSize <= 0){
+			return result;
+		}
+		
+		if (rowSize == 1){
+			for (int i = index; i <= colSize + index - 1; i++ ){
+				result.add(matrix[index][i]);
+			}
+			return result;
+		}
+		if (colSize == 1){
+			for (int i = index; i <= rowSize + index - 1; i++){
+				result.add(matrix[i][index]);
+			}
+			return result;
+		}
+		for (int i = index; i < cols - index - 1; i++) {
+			result.add(matrix[index][i]);
+		}
+		for (int i = index; i < rows - index - 1; i++) {
+			result.add(matrix[i][cols - 1 - index]);
+		}
+		for (int i = cols - 1 - index; i > index; i--) {
+			result.add(matrix[rows - 1 - index][i]);
+		}
+		for (int i = rows - 1 - index; i > index; i--) {
+			result.add(matrix[i][index]);
+		}
+		
+		return spiralTra(matrix, index + 1, rowSize -2, colSize - 2,result);
+	}
+	public static void main(String[] args){
+		int[][] m ={{1}};
+		spiral2 test = new spiral2();
+		System.out.println(test.spiral(m));
+	}
+}
+26.spiral generate -- recursion
+其实这几道题都是想清楚base case以及这一层该做的事情之后，就很好解决了！
+package recursion;
+
+public class spiralGeneratew {
+	public int[][] spiralGenerate(int m, int n){
+		
+		int[][] result = new int[m][n];
+		if (m == 0 || n == 0){
+			  return result;
+		}
+		gen(result,0,m,n,1);
+		return result;
+	}
+	private void gen(int[][] result, int index, int rowSize, int colSize,int num){
+		int m = result.length;
+		int n = result[0].length;
+		if (rowSize <= 0 || colSize <= 0){
+			return;
+		}
+		if (rowSize == 1){
+			for (int i = index; i <= colSize + index - 1; i++ ){
+				result[index][i] = num++;
+			}
+			return;
+		}
+		if (colSize == 1){
+			for (int i = index; i <= rowSize + index - 1; i++){
+				result[i][index] = num++;
+			}
+			return;
+		}
+		for (int i = index; i < n - index - 1; i++) {
+			result[index][i] = num++ ;
+		}
+		for (int i = index; i < m - index - 1; i++) {
+			result[i][n - 1 - index] = num++;
+		}
+		for (int i = n - 1 - index; i > index; i--) {
+			result[m - 1 - index][i] = num++;
+		}
+		for (int i = m - 1 - index; i > index; i--) {
+			result[i][index] = num++;
+		}
+		gen(result, index + 1, rowSize - 2, colSize - 2, num);
+	}
+	public static void main(String[] args){
+		spiralGeneratew test = new spiralGeneratew();
+		int[][] a = test.spiralGenerate(2, 2);
+		for (int i = 0; i < a.length; i++ ){
+			for (int j : a[i]){
+				System.out.print(j);
+			}
+			System.out.println("");
+		}
+	}
+}
+27.String Abbreviation Matching
+这道题我一开始做得很麻烦，其实不需要，只要分析好两个case（pattern的char是不是数字）每个case做哪些事情，就好啦！！关键是数字的那一部分还要一个while loop去算这个数字是多少，我一开始写了好久，其实很简单，如下就直接搞定了pattern将到的位置和input需要跳过的字符长度。而且，可以不用一个if把两个case框起来，可以先写一个pattern是字母，如果不是那就肯定数字了，就可以继续下去，这样的话，while之外就不需要再写一遍if 字符是数字那样一长串的if条件了，就显得简明许多。还有这道题的base case，也容易写错，其实，只有两个都正好遍历完，才是true，一旦有一个超过了，绝对就不能继续下去，不然就越界了！如何把一个字符变成数字，也需要注意。
+public class matchPattern2 {
+	public boolean match(String input, String pattern) {
+		if (input == null || pattern == null) {
+			return false;
+		} else {
+			return matchStr(input, pattern, 0, 0);
+		}
+	}
+	private boolean matchStr(String input, String pattern, int index, int patternIndex ){
+		if (index == input.length() && patternIndex == pattern.length()){
+			return true;
+		}
+		if (index >= input.length() || patternIndex >= pattern.length()){
+			return false;
+		}
+		int count = 0;
+		if (pattern.charAt(patternIndex) >= '0' && pattern.charAt(patternIndex) <= '9' ){
+			while(patternIndex < pattern.length() && pattern.charAt(patternIndex) >= '0' && pattern.charAt(patternIndex) <= '9' ){
+				count = (pattern.charAt(patternIndex) - '0') + count*10;
+				patternIndex++;
+			}
+			return matchStr(input,pattern,index + count, patternIndex);
+		} else{
+			if (pattern.charAt(patternIndex) == input.charAt(index)){
+				return matchStr(input,pattern,index + 1, patternIndex + 1);
+			} else {
+				return false;
+			}
+			
+		}
+	}
+	public static void main(String[] args){
+		String s1 = "laioffercom";
+		String pa = "5e5";
+		matchPattern2 test = new matchPattern2();
+		System.out.println(test.match(s1, pa));
+	}
+}
+28.Lowest common ancestor--recursion*
+这道题目要注意分析case的情况，分析清楚后非常简单就能完成！
+一：当两个node的其中一个正好就是的时候，返回自己！
+二：当共同祖先不他们的时候。一个node接受下面传上来的值，看一看是不是null。如果都不是null，那么这个node就是我们要找的了！如果有一个不是null,那么久返回那个。其实最后一句话，对于两个都是null也是适用的！太机智了！
+这道题对于返回值的理解很重要！非常巧妙！
+
+public TreeNode lowestCommonAncestor(TreeNode root, TreeNode one, TreeNode two) {
+		if (root == null || root == one || root == two){
+			return root;
+		}
+		TreeNode left = lowestCommonAncestor(root.left, one, two);
+		TreeNode right = lowestCommonAncestor(root.right, one ,two);
+		if (left != null && right != null){
+			return root;
+		}
+		return left == null ? right : left;
+	}
+}
+变种1：如果是有k个nodes找共同的祖先，那么久用一个hashset!原理是一样的！也是是要找的,就返回自己，不是就null!
+public TreeNode lowestCommonAncestor(TreeNode root, Set<TreeNode> rootSet) {
+		if (root == null || rootSet.contains(root) ){
+			return root;
+		}
+		TreeNode left = lowestCommonAncestor(root.left, one, two);
+		TreeNode right = lowestCommonAncestor(root.right, one ,two);
+		if (left != null && right != null){
+			return root;
+		}
+		return left == null ? right : left;
+	}
+}
+变种2：如果是k个nodes,m-nary的tree，那么就需要在后面的判断里加个循环，并且要有count去记录是不是有大于等于2个要找的node在我这个分支了。同时要有一个curr去记录下来不是null的那个结果，因为当count只是1的时候，我们还是得返回那个不是null的值！这个我一开始没有注意到。
+public TreeNode lowestCommonAncestor3(TreeNode root, Set<TreeNode> nodeSet) {
+		if (root == null || nodeSet.contains(root)){
+			return root;
+		}
+		int count = 0;
+		TreeNode curr = null;
+		for (TreeNode i : root.children){
+			TreeNode tmp = lowestCommonAncestor2(i,nodeSet);
+			if (tmp != null){
+				count ++;
+				curr = tmp;
+			}
+			if(count == 2){
+				return root;
+			}
+		}
+		return curr;
+	}
+
+变种3：
+下面这张图是m=2，找a,b俩node的例子的图，其实m叉也是一样的，就是把层数改成logm(1000)就好啦！就是看最后一层用1000台pc能涵盖住的最多的node。然后现在前面10层run bfs去找有没有a or b,有的话，就对前十层run lca，依次类推如下。这题的关键在于对于recursion返回值的巧妙理解！真的很厉害！
+
+
+
+29.perfect shuffling--probability & sampling
+
+这个方法蛮重要的，但是一开始没有想好。。这个是要从右往左填数字的！这样才会有那种，我选了一个数字，还剩下n-1个数字的感觉！对于for循环的i，也要注意选取！
+public void shuffle(int[] array) {
+    // Write your solution here.
+    if (array == null || array.length <= 1){
+      return;
+    
+    for (int i = array.length; i >= 1; i--){
+      int cur = (int)(Math.random() * i);//得到[0,i-1]的随机数字，然后swap
+      int tmp = array[cur];
+      array[cur] = array[i - 1];
+      array[i - 1] = cur;
+    
+  
+30.use random 5 to generate random 7
+public int random7() {
+    // write your solution here
+    // you can use RandomFive.random5() for generating
+    // 0 - 4 with equal probability.
+    int num = 5 * RandomFive.random5() + RandomFive.random5();
+    while(num >=21){
+      num = 5 * RandomFive.random5() + RandomFive.random5();
+    
+    return num % 7;
+}
+30-2.use random 5 to generate random 1000
+public int random1000() {
+    // Write your solution here.
+    // you can use RandomFive.random5() for generating
+    // 0 - 4 with equal probability.
+    while(true){
+      int num = 0;
+      for (int i = 0; i < 5; i++){
+        num = num * 5 + RandomFive.random5();
+      
+      if (num < 3000){
+        return num % 1000;
+      
+    
+ 
+
+31.reservoir sampling--sampling
+这个算法的实现很神奇。。只有当random出来结果是0的时候，才选当前加入的数字作为结果，否则还是之前的那个数，而且这样子，之前那个数被选中的概念也是和新数字一样的！
+public class ReservoirSampling {
+	private int count;
+	private Integer sample;
+	public ReservoirSampling(){
+		this.count = 0;
+		this.sample = null;
+	}
+	
+	public void read(int value){
+		count++;
+		int prob = (int)(Math.random() * count);
+		if (prob == 0){
+			sample = value;
+		}
+	}
+	public Integer sample(){
+		return sample;
+	}
+	
+	public static void main(String[] args){
+		ReservoirSampling test = new ReservoirSampling();
+		test.read(1);
+		System.out.println(test.sample());
+		test.read(2);
+		System.out.println(test.sample());
+		test.read(3);
+		System.out.println(test.sample());
+	}
+}
+32.reservoir sampling with k samplings--sampling
+当我们需要k个的时候，我们需要看random出来的数字是不是小于k。这道题的一些判断条件一定要自己搞一个例子，不然很容易搞错！
+public class KReservoirSampling {
+	private final int k;
+	private int count;
+	private List<Integer> sample;
+	public KReservoirSampling(int k){
+		if (k <=0){
+			throw new IllegalArgumentException("k must be > 0");
+		}
+		this.k = k;
+		this.count = 0;
+		sample = new ArrayList<Integer>();
+	}
+	public void read(int value){
+		count++;
+		if (count <= k){
+			sample.add(value);
+		} else{
+			int prob = (int)(Math.random() * count);//加入k=100,then we have 101 numbers now, so we generate [0,100]
+			//but we only need [0,99] which has 100 numbers in our result, so if the prob is <100 then we will replace
+			//arraylist[prob] with the new value
+			if (prob < k){
+				sample.set(prob,value);
+			}
+		}
+	}
+	public List<Integer> sample(){
+		return sample;
+	}
+}
+33.Median Tracker -- sampling
+这道题蛮有趣的！把一段排序好的数字拆成两半，小的一般用maxHeap，大的一半用minHeap，这样我们就可以以O（1）的时间去找到我们需要的median了！而且是可以不断进行加入数据的操作的！很厉害！
+
+import java.util.*;
+
+public class medianFlow {
+	PriorityQueue<Integer> min_Heap;
+	PriorityQueue<Integer> max_Heap;
+
+	public medianFlow() {
+		min_Heap = new PriorityQueue<>();
+		max_Heap = new PriorityQueue<>(11, Collections.reverseOrder());//java solution在这里初始化的是11。
+
+	}
+
+	public void read(int value) {
+		// keep max_heap >= min_heap
+		if (max_Heap.isEmpty() || value <= max_Heap.peek()) {//这句很精炼！值得学习！
+			max_Heap.add(value);
+		} else {
+			min_Heap.add(value);
+		}
+		//java solution的下面这部分是分开做的，不分开也一样。
+		if (max_Heap.size() > min_Heap.size() + 1) {
+			min_Heap.add(max_Heap.poll());
+		}
+		if (min_Heap.size() > max_Heap.size()) {
+			max_Heap.add(min_Heap.poll());
+		}		
+	}
+
+	public Double median() {
+		if (Size() == 0) {
+			return null;//用了一个size方便去做一些corner case！
+		} else {
+			if (Size() % 2 == 0) {
+				return ((max_Heap.peek() + min_Heap.peek())) / 2.0;
+			} else {
+				return (double)max_Heap.peek();
+			}
+		}
+	}
+	public int Size(){
+		return max_Heap.size() + min_Heap.size();
+	}
+
+	public static void main(String[] args) {
+		medianFlow test = new medianFlow();
+		test.read(1);
+		test.read(2);
+
+		System.out.println(test.median());
+
+	}
+}
+34.percentile 95
+（Given a list of integers representing the lengths of urls, find the 95 percentile of all lengths (95% of the urls have lengths <= returned length).）这个解法从右往左遍历，因为这样我们只需要找到5%的那个点。要注意的是，当sum超过5%时，我们应该返回这个len，因为这说明一定有95%的url的长度是<=len的，可以有很多部分是等于len的，但也是可以算到95%里面的！例如122223，2就是len了！
+public class percentile95 {
+	public int percentile95(List<Integer> lengths) {
+		int[] total = new int[4097];
+		for (int i : lengths) {
+			total[i]++;
+		}
+		int sum = 0;
+		int len = 4097;
+		while (sum <= 0.05 * lengths.size()) {
+			sum += total[--len];
+		}
+		return len;
+	}
+
+}
+35.deep copy a LinkedList with random pointer--DS
+主要思路是用hashmap去校验有没有出现过这个node。注意这道题需要先new 一个新的head，然后要再有一个curr去复制一个个新的node，最后返回newHead!!这里有一个trick是，当我们判断完这个node出现过没有之后，要记得让curr去连接新产生的node，不管有没有出现过，都要去连接。
+method1:
+public RandomListNode deepCopyLinkedListWithRandom(RandomListNode head) {
+		if (head == null) {
+			return head;
+		}
+		Map<RandomListNode, RandomListNode> nodeMap = new HashMap<>();
+		RandomListNode newHead = new RandomListNode(head.value);
+		nodeMap.put(head, newHead);
+		// newHead is the head of the new linkedlist.
+		RandomListNode curr = newHead;// use curr to copy every node
+		while (head != null) {
+			if (head.next != null) {
+				if (!nodeMap.containsKey(head.next)) {
+					nodeMap.put(head.next, new RandomListNode(head.next.value));//这里可以一步到位！
+				}
+				curr.next = nodeMap.get(head.next);// 因为先判断在不在，不在的话填进去，然后出if，用get，即使不在也在了！哈哈！很机智
+			}
+			if (head.random != null) {
+				if (!nodeMap.containsKey(head.random)) {
+					nodeMap.put(head.random, new RandomListNode(
+							head.random.value));
+				}
+				curr.random = nodeMap.get(head.random);
+			}
+			head = head.next;
+			curr = curr.next;
+		}
+		return newHead;
+
+	}
+
+method2:iterative ，但是需要三次循环操作，比较复杂，但是对于linkedlist的操作真是神了！
+
+36.deep copy of a graph
+method1:dfs.dfs的思路主要在于不停地调用自己！深度优先！先把所有的node都加进map，然后，再把自己加到复制的node的neighbors里面！一层一层往上，一层层加到neighbor里面。
+public List<GraphNode> copy2(List<GraphNode> graph){
+		Map<GraphNode,GraphNode> nodeMap = new HashMap<>();
+		if (graph == null){
+			return null;
+		}
+		for (GraphNode i : graph){
+			if (!nodeMap.containsKey(i)){
+				nodeMap.put(i, new GraphNode(i.key));
+				dfs(i,nodeMap);
+			}
+		}
+		return new ArrayList<>(nodeMap.values());//这个用法很好！值得学习！！！
+	}
+	private void dfs(GraphNode curr, Map<GraphNode,GraphNode> nodeMap){
+		GraphNode copied = nodeMap.get(curr);
+		for (GraphNode i : curr.neighbors){
+			if (!nodeMap.containsKey(i)){
+				nodeMap.put(i, new GraphNode(i.key));
+				dfs(i,nodeMap);
+			}
+			copied.neighbors.add(nodeMap.get(i));
+		}
+	}
+}
+method2:bfs的方法，这个做法是我自己写的，所以还是比较推荐dfs的写法啦，感觉更加简单。但是bfs的写法也很简单对于copy来说，因为我们有了map和list of graph node，所以不再需要isVisted这个field了，这样写起来特别方便，只需要遍历一遍node，复制node，然后把neighbors再复制一遍就好啦！只需要注意，这个neighbor有没有之前被generate过，如果有就直接get，没有的话，先put，就这样，非常明了。。。。。结果我之前还想了好久。。。。根本连queue都不需要。。。但是题目如果给的是一个node的话，就得需要queue了！但是后面的判断方法是一样的。只不过多一步把没有generate的（即hashmap里没有的）加到queue里！
+public List<GraphNode> copy(List<GraphNode> graph) {
+		
+		Map<GraphNode,GraphNode> nodeMap = new HashMap<>();
+		List<GraphNode> newGraph = new ArrayList<>();
+		if (graph == null){
+			return newGraph;
+		}
+		for (GraphNode i : graph){
+			if (!nodeMap.containsKey(i)){
+				nodeMap.put(i, new GraphNode(i.key));
+			}
+			GraphNode newNode = nodeMap.get(i);
+			for (GraphNode nei : i.neighbors){
+				if (!nodeMap.containsKey(nei)){
+					nodeMap.put(nei, new GraphNode(nei.key));
+				}
+				newNode.neighbors.add(nodeMap.get(nei));
+			}
+			newGraph.add(newNode);
+		}
+		return newGraph;
+	}
+37.k way merge
+这道题很不错，用到了priorityqueue,新建了一个类。通过这个类来track我们现在是第几个数组该移动了。K个数组一起谁小移动谁！
+public class KwayMerge {
+	class element {
+		int value;
+		int array_num;
+		int index;
+	
+		public element(int value, int array_num, int index) {
+			this.value = value;
+			this.array_num = array_num;
+			this.index = index;
+		}
+	}
+	static class MyComparator implements Comparator<element>{
+		@Override
+public int compare(element a, element b) {
+			if (a.value == b.value) {
+				return 0;
+			}
+			return a.value > b.value ? 1 : -1;
+		}
+	}
+	public int[] merge(int[][] arrayOfArrays) {
+		////因为不一定每一个数组都是有效的，所以这里不需要先算有多少个数组，而且后面创建pq的时候，也可以先不要设定k为大小，免得很多数组是null，这样浪费了空间，所以我们只需要先把pq的大小设为11就好，java solution的很多大小初始化都是11，以后我也这样做好啦！
+
+		//int k = arrayOfArrays.length;
+		/*以后如果要重写pq的comparator，我觉得最好单独写在外面，这里重点学习一下！
+		PriorityQueue<element> minHeap = new PriorityQueue<>(11,
+				new Comparator<element>() {
+					public int compare(element a, element b) {
+						if (a.value == b.value) {
+							return 0;
+						}
+						return a.value > b.value ? 1 : -1;
+					}
+				});
+		*/
+		PriorityQueue<element> minHeap = new PriorityQueue<>(11, new MyComparator());
+		int sum = 0;
+		for (int i = 0; i < arrayOfArrays.length; i++) {
+			if (arrayOfArrays[i] == null || arrayOfArrays[i].length <= 0 ){
+				continue;
+			}
+			element curr = new element(arrayOfArrays[i][0], i, 0);
+			minHeap.offer(curr);
+			sum += arrayOfArrays[i].length;
+		}
+		int[] result = new int[sum];
+		int count = 0;
+		while (!minHeap.isEmpty()) {
+			element curr = minHeap.poll();
+			result[count++] = curr.value;
+			curr.index++;
+			//这里其实可以不new一个新的element，可以修改一下curr就好，不过都可以啦！
+			if (curr.index < arrayOfArrays[curr.array_num].length) {
+				minHeap.offer(new element(
+						arrayOfArrays[curr.array_num][curr.index],
+						curr.array_num, curr.index));
+			}
+		}
+		return result;
+	}
+	public static void main(String[] args){
+		int[][] input = new int[][]{{},{1,5,7},{4},{2,3,5,11},{2,4,4,6,8}};
+		KwayMerge test = new KwayMerge();
+		int[] result = test.merge(input);
+		for (int i : result){
+			System.out.println(i);
+		}
+	}
+}
+37-2.k way merge list of listnode
+这个其实比较简单了，因为我们只需要不断next，不需要知道第几个啊什么的。因为我们进那个pq的就是node，node都是知道自己是哪儿来的的，和上一题不一样了！！！其实这一题一开始完全做错了！还有，注意track当前节点的node不要忘了移动！！
+class ListNode {
+		    public int value;
+		    public ListNode next;
+		    public ListNode(int value) {
+		      this.value = value;
+		      next = null;
+		   }
+	}
+	
+	static class MyComparator implements Comparator<ListNode>{
+		@Override
+		public int compare(ListNode a, ListNode b) {
+			if (a.value == b.value) {
+				return 0;
+			}
+			return a.value > b.value ? 1 : -1;
+		}
+	}
+	public ListNode merge(List<ListNode> listOfLists) {
+		PriorityQueue<ListNode> minHeap = new PriorityQueue<>(11, new MyComparator());
+		for (ListNode i : listOfLists) {
+			if (i != null){
+				minHeap.offer(i);
+			}
+		}
+		ListNode dummy = new ListNode(0);
+		ListNode result = dummy;
+		while (!minHeap.isEmpty()) {
+			result.next =  minHeap.poll();
+			if ( result.next.next!= null) {
+				minHeap.offer(result.next.next);
+			}
+			result = result.next;//这一步千万不能忘记！！！不然result一直不动了啊！
+		}
+		return dummy.next;
+	}
+38.Closest Number In Binary Search Tree
+
+这题和在bst找到一样的值得node是一样的。
+public int closest(TreeNode root, int target) {
+		//不需要global min，因为要返回那个node的值，所以我们maintain的是那个node.key！
+		int close = Integer.MAX_VALUE;
+		while(root != null){
+			if (root.key == target){
+				return target;
+			} else{
+				if (Math.abs(close - target) > Math.abs(root.key - target)){
+					close = root.key;
+				}
+				if (root.key > target){
+					root = root.left;
+				} else{
+					root = root.right;
+				}
+			}
+			
+		}
+		return close;
+	}
+
+39.Add space in a string -- final exam/ dfs
+
+这道题是subset的题目，忘记了好几处的恢复原状！！这很重要！对于stringbuilder的一些函数也要记住，尤其是哪些是length()，哪些是size()，删除元素，添加元素等等！！
+public List<String> permutation(String input){
+	StringBuilder strBuild = new StringBuilder();
+	List<String> result = new ArrayList<String>();
+	permutate(input, strBuild, result, 0);
+	return result;
+}
+public void permutate(String input, StringBuilder strBuild, List<String> result, int index){
+	if (index == input.size() - 1){
+		strBuild.append(input.CharAt(index));
+result.add(new String(strBuild.toString()));
+strBuild.deleteCharAt(strBuild.length() - 1);
+		return;
+}
+strBuild.append(input.CharAt(index));
+strBuild.append(‘_’);
+permutate(input, strBuild, result, index+1);
+strBuild.deleteCharAt(strBuild.length() - 1);
+permutate(input, strBuild, result, index+1);
+strBuild.deleteCharAt(strBuild.length() - 1);
+}
+time: if string’s length is n, then O(2^n)。
+
+40.Cousins In Binary Tree--final exam/bfs1
+method1:bfs1。分层打印，然后看有木有找到。注意bfs1的写法很多细节要做对！while里面是isEmpty,每一次offer都要看是不是null!
+public boolean isBrother2(TreeNode root, TreeNode a, TreeNode b) {
+		if (root == a || root == b) {
+			return false;
+		}
+		Queue<TreeNode> nodeQ = new LinkedList<>();
+		nodeQ.offer(root);
+		while (!nodeQ.isEmpty()) {
+			int n = nodeQ.size();
+			int match = 0;
+			for (int i = 0; i < n; i++) {
+				TreeNode curr = nodeQ.poll();
+				if (curr.left != null) {
+					nodeQ.offer(curr.left);
+				}
+				if (curr.right != null) {
+					nodeQ.offer(curr.right);
+				}
+
+				if (check(a, b, curr)) {
+					match++;
+				}
+			}
+			if (match == 2) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public boolean check(TreeNode a, TreeNode b, TreeNode curr) {
+		if ((curr.left == a && curr.right != b)
+				|| (curr.right == a && curr.left != b)
+				|| (curr.right == b && curr.left != a)
+				|| (curr.left == b && curr.right != a)) {
+			return true;
+		}
+		return false;
+	}
+method2:巧妙设置返回值！！
+public boolean isBrother3(TreeNode root, TreeNode a, TreeNode b){
+	boolean[] flag = new boolean[1];
+checkBro(root, a, b, 0, flag);
+return flag[0];
+}
+public int checkBro(TreeNode root, TreeNode a, TreeNode b, int level, boolean[] flag){
+	if (root == null){
+		return -1;
+}
+if（root == a || root == b){
+	return level;
+}
+int left = checkBro(root.left, a, b, level + 1, flag);
+int right = checkBro(root.right, a, b, level + 1, flag);
+if (left == right && (left - 1 > level)){
+	flag[0] = true;
+}
+return left > right ? left : right;
+}
+41.min cut squares--final/dp
+
+这道题的关键是搞清楚左大段和右小段，在这里，右小段必须是一个平方数，然后左大段我们就查表！于是就能知道这种分发的min cut了！第一层循环，从i= 2开始即可！注意第二层循环里的j的设置方法！j*j<=i，就能构造出符合题意的切法了！
+public int minCut(int input){
+	int[] cut = new int[input + 1];
+	cut[0] = 0;
+	cut[1] = 1;
+	for (int i = 2; i <= input; i++){
+		cut[i] = i;
+		for (int j = 1; j * j <= i; j++){
+			cur[i] = Math.min(cut[i], 1 + cut[i - j * j]);
+}
+}
+return cut[input + 1];
+}
+time:O(n * n^0.5) = O(n^1.5)
+space:O(n)
+
+42.Form A Ring With Words
+这道题就是一个permutation的题，但我还是不够熟悉写法，对于swap还需要多加深理解！尤其是index和i的物理意义，这样才能知道到底判断那两个string能不能chained!其次，base case一开始也写错了！注意最后一个index也是要换的啊！所以base case就是应该到input.length。
+public boolean isCircleChain(String[] input){
+	boolean[] flag = new boolean[1];
+findAllPermu(input, 0, flag);
+return flag[0];
+}
+public void findAllPermu(String[] input, int index, boolean[] flag){
+	if (index == input.length){//这里是到length为止！而不是-1，因为最后一个index也要换的呀！
+		String head = input[0];
+	String curr = input[i];
+	if (head.charAt(0) == curr.charAt(curr.length() - 1)){
+		flag[0] = true;
+}
+return;
+}
+//这是我的方法，其实一样，但确实没必要先swap。还要注意的是，idnex = 0的情况！
+for (int i = index; i < input.length; i++) {
+	swap(input, index, i);
+	if (index == 0 || input[index - 1].charAt(input[index - 1].length() - 1) == input[index].charAt(0)) {
+		findAllPermu(input, index + 1, flag);
+	}
+	swap(input, index, i);
+}
+/*method2，先检查再换。注意这里到底是检查哪两个string以及index和i代表的物理意义。先换的话，应该检查index和index-1能不能连接，换之前应该检查i和index-1，其实方法上是一样的。。。。
+for (int i = index; i < input.length; i++){
+	if (index == 0 || input[i].charAt(0) == input[index - 1].charAt(input[index - 1].length() - 1)){
+		swap(input, index, i);
+		findAllPermu(input, index + 1, flag);
+swap(input, index, i);
+}
+}
+*/
+}
+public void swap(String[] input, int a, int b){
+	String tmp = input[a];
+	input[a] = input[b];
+	input[b] = tmp;
+}
+}
+
+
