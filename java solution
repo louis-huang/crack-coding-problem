@@ -1,0 +1,2619 @@
+
+1. Selection sort	4
+2.Merge Sort	5
+2-1Merge sort变化题：A1B2C3D4→ ABCD1234	6
+2-2merge sort变化题2：ABCD1234→ A1B2C3D4	8
+3.quick sort	9
+4.类似quick sort的方法Move all 0s to the right	11
+5.计算a to the power of b (a,b both integers and b is non-negative)	12
+6.Queue by two stacks	13
+7.rainbow sort	14
+8.stack 有min的功能	15
+9.Reverse a singly LinkedList	16
+10.Middle Node of LinkedList-快慢指针	18
+11.Check if a LinkedList has a cycle	18
+12.Insert a listnode to a sorted linkedlist	19
+13.merge two sorted linkedlist	20
+14.partition linkedlist according to a target number	21
+15.Classical Binary Search	21
+16. first occurence	22
+17.last occurence	23
+18.closet in sorted array	24
+19.Search in sorted matrix	24
+18.pre-order traverse	25
+19.In-order traverse	26
+20.post-order traverse	27
+21.height and treenode number	28
+22.check if binary tree is balanced	29
+23.check if binary tree is symmetric	30
+24.check if tweaked identical binary tree	30
+25.check if binary search tree	31
+26.get keys from bst	32
+27. kth smallest in an unsorted array（升序输出）	33
+28.实现BFS（	35
+Get Keys In Binary Tree Layer By Layer	35
+）	35
+29.BFS * 分层打印的graph node用法	36
+30.BFS**graph方法	36
+31.check if binary tree is a complete binary tree	38
+32.Bipartite	38
+33.K Closest In Sorted Array	39
+34.Search In Unknown Sized Sorted Array	42
+35.Kth Smallest Number In Sorted Matrix	42
+36.All Valid Permutations Of Parentheses I	44
+37.Combinations Of Coins-DFS	45
+38.ALL Permutation I(No duplicates)DFS	47
+39.All Permutations II(with duplicates)-DFS	48
+40.reorder linkedlist!	49
+41.Largest SubArray Sum--DP	52
+42.Dictionary Word I-DP	53
+43.Edit Distance-DP	56
+44.largest square sum-DP	57
+45.longest consecutive 1s-DP	59
+46.longest cross-DP	60
+47.Largest X Of 1s--DP	64
+48.largest square by 1s--DP	66
+49.largest submatrix sum--DP	69
+50.largest square surrounded by matchsticks	71
+
+
+1.	Selection sort
+package laioffer;
+
+public class practice1 {
+	public static void main(String[] args) {
+		long [] arr = {999,-2,44,1212,356,-3,56};
+		if (arr.length == 0) {//这里要区分一下null和empty （if (array == null | | array .length == 0)）
+			return;
+		}	
+		long min = 0;//min可以在循环里面去定义！可这样不会污染名字空间。
+		for (int i = 0; i< arr.length ; i++){//这里长度可以arr.length-1，因为剩下一个的时候，肯定已经全部安排好了。O(n)
+			for (int j = i+1; j < arr.length; j++){O(n)对于每一个数，都要k*n次。
+				//long min = 0;
+if (arr[i] > arr[j]){
+					min = arr[j];
+					arr[j] = arr[i];
+					arr[i] = min;
+				}
+			}
+			System.out.println(arr[i]);
+		}
+	}
+}
+时间复杂度是n^2。
+n+n-1+...+3+2+1=n(n-1)/2→ n^2
+也可以如下方法做，用min记录最小的数的位置，然后出了循环之后再交换。空间复杂度O(1)。3个O(1)，3是个常数级，所以就是O(1)。
+
+package laioffer;
+
+public class practice1 {
+	public static void main(String[] args) {
+		int [] arr = {999,-2,44,1212,356,-3,56};
+		if (arr.length == 0) {
+			return;
+		}	
+		int min, tmp; 
+		for (int i = 0; i< arr.length-1 ; i++){
+			min = i;
+			for (int j = i+1; j < arr.length; j++){
+				if (arr[j] < arr[min]){
+					min = j;
+				}
+			}
+			tmp = arr[i];
+			arr[i] = arr[min];
+			arr[min] = tmp;
+			System.out.println(arr[i]);
+		}
+	}
+}
+
+2.Merge Sort
+由于不了解变量的作用域，所以函数里都重新定义了变量。
+package laioffer;
+
+public class mergeSort {
+	public int[] mergeSortt(int[] array){
+		if (array.length == 0 || array == null) {
+			return array;
+		}
+		int[] brr = new int[array.length];
+		MergeSort(array, brr, 0, array.length-1);//这个操作最消耗时间，计算他！在分割和merge的时候，每一层的时间复杂度都是O(n)。
+因为最底层是每个数1的时间复杂度，有n个数，1*n。倒数第二层，有n/2组数，每一组时间是2，所以n/2 *2，那么有多少层呢？ 是log2(n)层，所以时间是n*log(n)。
+
+		return array;
+	}
+	public static int[] MergeSort(int[] irr, int[] jrr, int i, int j) {//老师的代码是：private void merge(xxx)
+		if (i >= j) {//以后都写大于等于。不只是等于。
+			return irr;
+		}
+		int mid = i + (j - i)/2;//算中间值，这样更安全
+		MergeSort(irr, jrr, i, mid);//这里是mid的原因是，如果是mid-1，下面那一层会无线recursion。
+		MergeSort(irr, jrr, mid+1, j);
+		Merge(irr, jrr, i, mid, j);
+		return irr;
+	}
+	public static int[] Merge(int[] lrr, int[] rrr, int leftIndex, int midIndex, int rightIndex) {
+		int left = leftIndex, right = midIndex + 1, mid = midIndex;
+		for (int i = left; i <= rightIndex; i++) {
+			rrr[i] = lrr[i];
+		}
+		while (left <= mid && right <= rightIndex) {
+			if (rrr[left] <= rrr[right]) {
+				lrr[leftIndex++] = rrr[left++];//注意，两个的下标不一样！对于循环，应该看的是rrr,既存有复制的数据的数组。
+			} else{
+				lrr[leftIndex++] = rrr[right++];
+			}
+		}
+		while (left <= mid) {
+			lrr[leftIndex++] = rrr [left++];
+		}
+		return lrr;
+	}
+	public static void main(String[] args) {
+		mergeSort solution = new mergeSort();
+		int [] array = {993,8,3,1,4};
+		array = solution.mergeSortt(array);
+		for (int arr : array){
+			System.out.println(arr);
+		}
+		
+	}
+}
+2-1Merge sort变化题：A1B2C3D4→ ABCD1234
+这两道变种题的更好的解法见第二份练习的reorder array!
+package laioffer;
+
+public class extendMerge {
+	public static void main(String[] args){
+		char[] arr = {'A','1','B','2','C','3','D','4'};
+		char[] brr = new char[arr.length];
+		mergeSort(arr, brr, 0, arr.length-1);
+		for (char s : arr){
+			System.out.print(s);
+		}
+	}
+	public static void mergeSort(char[] arr, char[] brr, int i, int j){
+		if (i >= j) {
+			return;
+		}
+		int mid = i + (j - i)/2;
+		mergeSort(arr, brr, i, mid);
+		mergeSort(arr, brr, mid+1, j);
+		merge(arr, brr, i, mid, j);
+	}
+	public static void merge(char[] arr, char[] brr, int left, int mid,int right){
+		for (int i = left; i <= right; i++){
+			brr[i] = arr[i];
+		}
+		int leftIndex = left;
+		int rightIndex = mid +1;
+		while (leftIndex <= mid && rightIndex <= right){// 只需要修改一下判断大小的方法，但我这里把ABCD也比较了大小，但实际不一定需要我比，可能B1A2→ BA12，这样的需求是有可能的，但可能这就不叫排序了。这中情况就不需要比较大小，直接把brr左边的给到arr左边的即可。
+			if ((int)brr[leftIndex] >=65 && (int)brr[rightIndex] <= 57){
+				arr[left++] = brr[leftIndex++];
+			} else if ((int)brr[leftIndex] <=57 && (int)brr[rightIndex] >= 65){
+				arr[left++] = brr[rightIndex++];
+			} else {
+				if (brr[leftIndex] <= brr[rightIndex]){
+					arr[left++] = brr[leftIndex++];
+				} else{
+					arr[left++] = brr[rightIndex++];
+				}
+			}
+		}
+		while (leftIndex <= mid){
+			arr[left++] = brr[leftIndex++];
+		}
+	}
+}
+2-2merge sort变化题2：ABCD1234→ A1B2C3D4
+package laioffer;
+
+public class ExtendedMergeSort {
+	public static void main(String[] args){
+		char[] arr = {'A','B','C','D','E','1','2','3','4','5'};
+		char[] brr = new char[arr.length];
+		int midOne = 0 + (arr.length-1 - 0)/2;
+		int midTwo = 0 + (midOne - 0)/2;
+		reverseArray(arr, midOne-midTwo,midOne);//先reverse中间部分，之后按照规则排序。
+		reverseArray(arr, midOne+1, midOne +1+ midTwo);
+		reverseArray(arr, midOne-midTwo, midOne + midTwo+1);
+		merge(arr, brr, 0, arr.length-1);
+		for (char i : arr){
+			System.out.println(i);
+		}
+	}
+	public static void reverseArray(char[] arr, int left, int right){
+		char[] brr = new char[arr.length];
+		for (int i = left; i <= right; i++){
+			brr[right+left-i] = arr[i];
+		}
+		for (int i = left; i <= right; i++){
+			arr[i]= brr[i];
+		}
+	}
+	public static void sawpArray(char[] arr, int left,int mid, int right){//swap打错了。。anyway，以及下标还是要小心。
+		char[] brr = new char[arr.length];
+		for (int i = left; i<= right; i++){
+			brr[i] = arr[i];
+		}
+		int leftIndex = left;
+		int rightIndex = mid+1;
+		while (leftIndex <= mid && rightIndex<= right){
+			if (((int)brr[leftIndex] >=65 && (int)brr[rightIndex] >=65) || (int)brr[leftIndex] <=57 && (int)brr[rightIndex] <=57 ){
+				if (brr[leftIndex] < brr[rightIndex]){
+					arr[left++] = brr[leftIndex++];
+				} else {
+					arr[left++] = brr[rightIndex++];
+				}	
+			} else{
+				if (((int)brr[leftIndex]-(int)brr[rightIndex]) > 16) {
+					arr[left++] = brr[rightIndex++];
+				} else if(-16<= ((int)brr[leftIndex]-(int)brr[rightIndex]) && ((int)brr[leftIndex]-(int)brr[rightIndex]) < -7){
+					arr[left++] = brr[rightIndex++];
+				} else {
+					arr[left++] = brr[leftIndex++];
+				}
+			}
+		}
+		while (leftIndex <=mid){
+			arr[left++] = brr[leftIndex++];
+		}
+	}
+	public static void merge(char[] arr, char[] brr, int left, int right){依然是关键！打散数据，两两merge
+		if (left>=right){
+			return;
+		}
+		int mid = left + (right - left)/2;
+		merge(arr,brr,left,mid);
+		merge(arr,brr,mid+1,right);
+		sawpArray(arr,left, mid, right);
+	}
+}
+3.quick sort
+平均的时间复杂度是O（nlogn），每一层都是n的复杂度，有logn层。worst case是O（n^2）
+空间复杂度是stack层数，所以平均是logn,worst case是n。
+package laioffer;
+
+import java.util.Random;
+
+public class QuickSort {
+	Random r = new Random();
+	public static void main(String[] args){//这里非常重要！要知道怎么新建类，怎么去调用！不然程序一直出错。
+		QuickSort solution = new QuickSort(); 
+		int[] arr = {3,2,5,-3,1,5,8,99,9,5,42,3,5,1,4,3}; 
+		 arr = solution.quickSort(arr);
+		 for (int i : arr){
+			 System.out.println(i);
+		 }
+	}
+	public  int[] quickSort(int[] arr){
+		quickSortPartition(arr, 0, arr.length -1);
+		return arr;
+	}
+	public void swap(int[] arr, int a, int b){
+		int tmp = arr[a];
+		arr[a] = arr[b];
+		arr[b] = tmp;
+	}
+
+	public  int quickSort(int[] arr, int leftBound, int rightBound, int pivotIndex){/*
+							其实，参数传入三个就够了，因为rightBound这里就是pivotIndex-1，所以没必要搞四个参数！
+							而且如果要随机生成一个数的话，pivotIndex其实应该随机出来的！这个做法适合最后一个数，作为pivotIndex。
+		*/
+		
+		int pivot = leftBound + r.nextInt(pivotIndex - leftBound + 1);//随机选了一个pivot,但他在哪对我们不重要，只需要换到最后。
+		swap(arr, rightBound+1, pivot);
+		int i = leftBound;//这里新建i和j作为leftIndex和rightIndex
+		int j = rightBound;
+		while (i<=j){//我这里的判断条件写的是对的，但可以更加简练！！如下
+			/*
+			if (arr[i] < arr[pivotIndex]){
+	i++;
+} else{
+	swap(arr,i,j);
+	j--;
+}
+*/
+			if (arr[i] < arr[pivotIndex]){
+				i++;
+			} else if (arr[j] >= arr[pivotIndex]){
+				j--;
+			} else if (arr[i] >= arr[pivotIndex] && arr[j] < arr[pivotIndex]){//这句话改成else就可以了！
+				swap(arr, i, j);
+				i++;
+				j--;
+			}
+		}
+		swap(arr, i, pivotIndex);
+		return i;
+	}
+	
+	public void quickSortPartition(int[] arr, int left, int right){
+		if (right < left){
+			return;
+		}
+		int pivotIndex = quickSort(arr, left, right-1, right);
+		quickSortPartition(arr, left, pivotIndex-1);
+		quickSortPartition(arr, pivotIndex+1, right);
+		return;
+	}
+	
+}
+4.类似quick sort的方法Move all 0s to the right
+package laioffer;
+
+public class Move0sTotheEnd {
+	public static void main(String[] args){
+		int[] s = {0,2,2,0};
+		moveZero(s);
+		for (int i : s ){	
+			System.out.println(i);
+		}
+	}
+	public static int[] moveZero(int[] arr){
+		int left = 0;
+		int right = arr.length-1;
+		while ( right >= left){
+			if (arr[left] != 0){
+				left++;
+			} else {
+				swap(arr, left, right);
+				right--;
+			}
+			if (arr[right] == 0){//这一点其实可以直接跟在上面的选择里，来一个else！
+				right--;
+			}
+		}
+		return arr;
+	}
+	public static void swap(int[] arr, int a, int b){
+		int tmp = arr[a];
+		arr[a] = arr[b];
+		arr[b] = tmp;
+	}
+}
+5.计算a to the power of b (a,b both integers and b is non-negative)
+package laioffer;
+
+public class AtothePoweofB {
+	public static long power(int a, int b){
+		if (a == 0) {
+			return 0;
+		}
+		if (b == 0){
+			return 1;
+		}
+		long powerValue = power(a, b/2);
+		if (b % 2 ==1){//这里可以简化写！ if b % 2  == 1 ? powerValue * powerValue * a : powerValue * powerValue
+			 return (powerValue * powerValue*a);
+		} else {
+			return (powerValue * powerValue);
+		}
+	}
+	public static void main(String[] args){
+		long k = power(-2,1);
+		System.out.println(k);
+	}
+}
+6.Queue by two stacks
+package laioffer;
+import java.util.*;加载utility 这个包
+public class QueueByTwoStack {//用linkedList模拟stack
+	private LinkedList<Integer> in;//这里把constructor放在下面，考虑到in和out的使用范围问题。
+	private LinkedList<Integer> out;
+	public QueueByTwoStack(){
+		in = new LinkedList<Integer>();
+		out = new LinkedList<Integer>();
+	}
+	public int getSize(){
+		if ((in.size() + out.size()) != 0){
+			return in.size() + out.size();
+		} else return 0;
+		
+	}
+	public boolean isEmpty(){
+		if (in.size() == 0 && out.size() == 0){//这样写更简练：return in.size() == 0 && out.size() == 0;
+			return true;
+		} else return false;
+	}
+	public void offerElement(int n){
+		in.offer(n);
+	}
+	public Integer pollElement(){
+		if (in.isEmpty() && out.isEmpty()){//这里直接来一句move();
+			return null;
+		} else if (out.isEmpty()){//这里可以写成return out.isEmpty() ? null : out.pop();
+			move();
+			return out.pop();
+		}
+		return out.pop();
+	}
+	public void move(){//可以把判断out是不是空放在move里，这样就不用再别的地方判断了，少了很多if。if out.isEmpty()
+		while (in.isEmpty() == false){
+			out.offer(in.pop());
+		}
+	}
+	public Integer peekElement(){
+		if (out.isEmpty()){//这里也不需要这么多if了！直接先move一波，然后peek out里面的就好啦！！！！
+			move();
+		}
+		if (out.peek() != null){
+			return out.peek();
+		} return null;
+				
+	}
+	public static void main(String[] args){
+		QueueByTwoStack queue = new QueueByTwoStack();
+		System.out.println(queue.isEmpty());
+		
+		queue.offerElement(7);
+		queue.offerElement(11);
+		queue.offerElement(2);
+		queue.offerElement(1);
+		System.out.println(queue.pollElement());
+		System.out.println(queue.peekElement());
+		System.out.println(queue.pollElement());
+		queue.offerElement(99);
+		System.out.println(queue.pollElement());
+		System.out.println(queue.pollElement());
+		System.out.println(queue.pollElement());
+		System.out.println(queue.isEmpty());
+	}
+}
+7.rainbow sort
+public class RainbowSort {
+	public int[] rainbowSort(int[] array){
+		 if (array.length == 0){
+		      return array;
+		    }
+		int j = 0, i = 0, k= array.length-1;
+		while (j <= k){//因为j和k之间是未知区域，j和k的值作为循环结束的标志！！所以应该拿j的值来比较！！！！j作为主要移动的标准！！！！
+			if (array[j] == -1){
+				swap(array, i, j);
+				i++;
+				j++;
+			} else if (array[j] == 0){
+				j++;
+			} else {
+				swap(array, j, k);
+				k--;
+			}
+				
+		}
+		return array;
+	}
+	private void swap(int[] arr, int i, int j){
+		int temp = arr[i];
+		arr[i] = arr[j];
+		arr[j] = temp;
+	}
+}
+8.stack 有min的功能
+(从左到右linear scan一个array/string时，要不断回头看左边的最新的元素时，往往
+
+import java.util.*;
+public class StackWithMin {
+	private LinkedList<Integer> in;
+	private LinkedList<Integer> min;
+	public StackWithMin(){
+		in = new LinkedList<Integer>();
+		min = new LinkedList<Integer>();
+	}
+	public int pop(){//不要忘记把min里面的一样的也pop出来！！！
+		if (in.isEmpty()){
+			return -1;
+		}
+		if (in.peek() == min.peek()){
+			min.pop();
+		}
+		return in.pop();
+	}
+	public void push(int element){
+		in.push(element);
+		if (min.isEmpty() || min.peek() >= element ){
+			min.push(element);
+		} 
+	}
+	public int top(){//这里并不需要判断那么多，因为in里面没有元素的话，min里面一定没有！！
+		if (in.isEmpty() && min.isEmpty()){
+			return -1;
+		} else if (min.isEmpty()){
+			return in.peek();
+		} else if (in.isEmpty()){
+			return min.peek();
+		} else{
+			return in.peek();
+		}
+	}
+	public int min(){
+		if (min.isEmpty()){
+			return -1;
+		}
+		return min.peek();
+	}
+}
+9.Reverse a singly LinkedList
+使用了两种方法，一个是recursion，一个是interative的方法，不要搞混了！
+package Test;
+class Node{//建一个listnNode，这里用Node表示
+	public int data;
+	public Node next;
+	public Node(int data){
+		this.data = data;
+		this.next = null;
+	}
+}
+class LinkedListT{//新建一个LinkedList的类
+	public Node head;
+	public LinkedListT(){
+		head = null;
+	}
+	public void addAtBegin(int data){//添加元素，加到头上
+		Node n = new Node(data);
+		n.next = head;
+		head = n;
+	}
+	public void display(Node head){
+		Node currNode = head;
+		while (currNode != null){
+			System.out.print("->" + currNode.data);
+			currNode = currNode.next;
+		}
+	}
+}
+public class TestLinkedList {
+	public static void main(String[] args){
+		LinkedListT a = new LinkedListT();
+		a.addAtBegin(1);
+		a.addAtBegin(2);
+		a.addAtBegin(3);
+		a.addAtBegin(4);
+		a.display(a.head);//现在是：->4->3->2->1 
+		System.out.println(" ");
+		TestLinkedList ss = new TestLinkedList();
+		a.head = ss.ReverseLinkedlist(a.head);
+		a.display(a.head);
+	}
+	public Node ReverseLinkedlist(Node head){//这是recursion的方法！先把头移到最后，然后往前一个一个把箭头反向。注意一开始就调用自身，就是为了先达到尾部，新建一个newhead!比较好想到的是N1.next.next = N1   N1.next= null这两句，那么N得从最后面开始，才能够构建起整个大问题。每次callstack回上一层，就是我当前想要转箭头的哪一个元素，反向之后，回上一层，则又可以反向下一个元素，直到回到第一层进来的那个元素，让其指向null，结果就出去啦！得到了最终的newhead。
+		if (head == null || head.next == null){
+			return head;
+		}
+		Node newhead = ReverseLinkedlist(head.next);
+		Node tail = head.next;
+		tail.next = head;
+		head.next  = null;
+		return newhead;
+	}
+	public Node reverseLinkedList(Node head){//引入previous,current来方便调换元素，这个是顺着链表移动，思路是顺着的。
+		Node prev = null;
+		while (head != null){
+			Node next = head.next;
+			head.next = prev;
+			prev = head;
+			head = next;
+		}
+		return prev;
+	}
+}
+10.Middle Node of LinkedList-快慢指针
+public ListNode middleNode(ListNode head){
+		 if (head == null){//发现这里只需要判断head是不是null!
+				return head;
+			}
+			ListNode j = head;
+			while (j.next != null && j.next.next != null ){//注意这里判断的时候，必须是判断j.next和j.next.next，而且，必须是且&&。
+				j = j.next.next;
+				head = head.next;
+			}
+			return head;
+	}
+}
+11.Check if a LinkedList has a cycle
+public boolean hasCycle(ListNode head){
+		if (head == null || head.next == null){
+			return false;
+		}
+		ListNode i = head, j = head.next;
+		while (i != j && j.next != null && j.next.next != null){
+			i = i.next;
+			j = j.next.next;
+		}
+		if (i != j){
+			return false;
+		} else{
+			return true;
+		}
+	}
+//以上是我的做法，if多了一些，其实不用这么多行代码，需要学习如何简化代码！！把判断i 和 j是否相等放在while loop里面！
+public boolean hasCycle(ListNode head){
+		ListNode i = head, j = head;
+		while (j.next != null && j.next.next != null){
+			i = i.next;
+			j = j.next.next;
+			if (i == j){
+				return true;
+			}
+		}
+		return false;
+	}
+
+12.Insert a listnode to a sorted linkedlist
+对于在while loop中，什么时候是null需要多思考！是next呢还是本身，所以应该对i是current做好认识
+
+public ListNode insertNode(ListNode head, int value){
+		ListNode i = head, j = head.next;
+		ListNode newHead = new ListNode(value);
+		if (head == null || i.value >= value){
+			newHead.next = head;
+			return newHead;
+		}
+		while (j.next != null){
+			if (i.value <= value && j.value >= value){//因为是sort好的，所以不需要两边夹，只需要在while里做判断！这道题做麻烦了！
+				i.next = newHead;
+				newHead.next = j;
+				return head;
+			}
+			i = i.next;
+			j = j.next;
+		}
+		j.next = newHead;
+		return head;
+	}
+}
+以上代码是自己写的，复杂了不少。以下为标准答案：
+public ListNode insertNode(ListNode head, int value){
+		if (head == null || head.value >= value){
+			ListNode newHead = new ListNode(value);
+			newHead.next = head;
+			return newHead;
+		}
+		ListNode i = head;//也是两个指针，一个前一个后
+		ListNode prev = null;
+		while (i != null && i.value < value){//注意这里判断i != null而不是i.next != null，因为i是我们value的那个node指向的东西，如果value是最大的一个，那么应当指向null,所以i得是null才行，否则，i不是null的话，i停在了最后一个数，那么，值为value的node会指向一个存在的数，却没有指向null。
+			prev = i;
+			i = i.next;
+		}
+		prev.next = new ListNode(value);//这样new就可以了，不需要引入一个新的变量！
+		prev.next.next = i;
+		return head;
+	}
+
+13.merge two sorted linkedlist
+public static ListNode merge(ListNode one, ListNode two){
+		ListNode dummy = new ListNode(0);
+		ListNode a = one, b = two;
+		ListNode tail = dummy;//因为头不能动！所以引入一个current的node来接受那两个linkedlist中小的那个
+		while (a != null && b != null){
+			if (a.value <= b.value){
+				tail.next = a;
+				a = a.next;
+			} else{
+				tail.next = b;
+				b = b.next;
+			}
+			tail= tail.next;//注意tail要移动一位！!!!!!!
+		}
+		if (a != null){
+			tail.next = b;
+		} else{
+			tail.next = a;
+		}
+		return dummy.next;
+	}
+14.partition linkedlist according to a target number
+Given a linked list and a target value T, partition it such that all nodes less than T are listed before the nodes larger than or equal to target value T. The original relative order of the nodes in each of the two partitions should be preserved.也是谁小移动谁。
+
+public ListNode partition(ListNode head, int target){
+		ListNode dummy1 = new ListNode(0);
+		ListNode large = dummy1;
+		ListNode dummy2 = new ListNode(0);
+		ListNode small = dummy2;
+		ListNode curr = head;//因为其实原来的head不要了，所以呢，可以直接拿head来做事情。
+		while (curr != null){
+			if (curr.value < target ){
+				small.next = curr;
+				small = small.next;
+			} else {
+				large.next = curr;
+				large = large.next;
+			}
+			curr = curr.next;
+		}
+		//if (dummy1.next != null){//这里不需要判断large是不是null，因为最后可以指向让small.next直接指向dummy1.next的那个null
+			small.next = dummy1.next;
+			large.next = null;
+		//}
+		return dummy2.next;
+	}
+
+15.Classical Binary Search
+public class Solution {
+  public int binarySearch(int[] array, int target) {
+    if (array == null || array.length == 0){
+			return -1;
+		}
+		int left = 0, right = array.length - 1;
+		while (left <= right){//注意这里的判断条件！！等于也是需要判断的
+			int mid = left + (right - left)/2;
+			if (array[mid] == target){
+				return mid;
+			} else if (array[mid] < target){
+				left = mid + 1;
+			} else {
+				right = mid - 1;
+			}
+		}
+		return -1;
+  
+}
+16. first occurence
+public static int firstOccur(int[] array, int target){
+		if (array == null || array.length == 0){
+			return -1;
+		}
+		int left = 0, right = array.length -1;
+		boolean flag = false;//不需要引入flag，因为mid一定会比right小！所以只要有array[mid]是对的，这个mid一定是最左边的！
+		while (left < right){//这里的判断条件要注意，我这样也是对，但后面if里就麻烦了些，就是right和left的取值会和标准答案不一样，避免了死循环，但是代码变长了。所有还是应该left<right-1
+			int mid = left + (right - left)/2;
+			if (array[mid] == target){
+				right = mid;
+				flag = true;
+			} else if (array[mid] > target){
+				right = mid -1;
+			} else{
+				left = mid + 1;
+			}
+		}
+		if (array[left] == target){
+			flag = true;
+		}
+		if (flag == true) {
+			return left;
+		} else {
+			return -1;	
+		}
+		
+	}
+以下是标准答案，就是在while loop里面不一样！这样更方便，但是理解起来稍微难一点。
+public static int firstOccur(int[] array, int target){
+		if (array == null || array.length == 0){
+			return -1;
+		}
+		int left = 0, right = array.length -1;
+		while (left < right-1){
+			int mid = left + (right - left)/2;
+			if (array[mid] >= target){
+				right = mid;
+			} else{
+				left = mid;
+			}
+		}
+		if (array[left] == target){//把最后一次判断放在最后面了。
+			return left;
+		} else if (array[right] == target){
+			return right;
+		}
+		return -1;	
+	}
+17.last occurence
+public static int lastOccur(int[] array, int target){
+		if (array == null || array.length ==0){
+			return -1;
+		}
+		int left = 0, right = array.length -1;
+		while (left < right-1){
+			int mid = left + (right - left)/2;
+			if (array[mid] <= target){
+				left = mid;
+			} else {
+				right = mid;
+			}
+		}
+		if (array[right] == target){
+			return right;
+		}
+		if (array[left] == target){
+			return left;
+		}
+		return -1;
+	}
+18.closet in sorted array
+private static int closet(int[] array, int target){
+		if (array == null || array.length == 0){
+			return -1;
+		}
+		int left = 0, right = array.length -1;
+		while (left < right - 1){
+			int mid = left + (right - left)/2;
+			if (array[mid] == target){//可以直接搞一个大于等于，这样少写一个if!!!!
+				return mid;
+			}
+			if (array[mid] > target){
+				right = mid;
+			} else {
+				left = mid;
+			}
+		}
+		if (Math.abs(array[left]-target ) > Math.abs(array[right]-target )){
+			return right;
+		} else{
+			return left;
+		}
+	}
+19.Search in sorted matrix
+对于matrix和摊开后的index的关系要注意！
+某个数的(i,j)i 表示某个数行数， j表示列数。
+index是摊开后的位置
+i = index / column 
+j = index mode column
+public static int[] searchMetrix(int[][] matrix, int target){
+		int col = matrix[0].length;
+		int row = matrix.length;
+		int left = 0, right = (col) * (row) -1;
+		int[] x = {-1,-1};
+		while (left <= right){
+			int mid = left + (right - left)/2;
+			if (matrix[mid / col][mid % col] == target){
+				int[] y = { mid / col,mid % col };//这里不需要新建！把x[0]和x[1]改了就可以！！！
+				return y;
+			} else if (matrix[mid / col][mid % col] > target){
+				right = mid - 1;
+			}  
+			else {
+				left = mid + 1;
+			}
+		}
+		return x;
+	}
+
+18.pre-order traverse
+答案给的是iterative的方法，比较繁琐，但值得去理解，尤其是利用了LinkedList的特点，使我们可以先打印左边，再右边。其他一些数据结构的运用，还需要多多尝试！
+package laioffer;
+import java.util.*;
+class TreeNode {
+	public int key;
+	public TreeNode left;
+	public TreeNode right;
+	public TreeNode(int key){
+		this.key = key;
+	}
+}
+public class PreorderTraverse {
+	public List<Integer> preOrder(TreeNode root){
+		List<Integer> preorder = new ArrayList<Integer>();
+		if (root == null){
+			return preorder;
+		}
+		Deque<TreeNode> stack = new LinkedList<TreeNode>();
+		stack.offer(root);
+		while (!stack.isEmpty()){
+			TreeNode cur = stack.pollFirst();
+			if (cur.right != null){
+				stack.offerFirst(cur.right);
+			}
+			if (cur.left != null){
+				stack.offerFirst(cur.left);
+			}
+			preorder.add(cur.key);
+		}
+		return preorder;
+		
+	}
+}
+下面是recurssion的做法。
+
+19.In-order traverse
+这个方法虽然麻烦，但值得思考，对之后理解graph里的bfs有帮助！
+public class InOrderTraverse {
+	public void inOrder1(TreeNode root){//这是recursion做法
+		if (root == null){
+			return;
+		}
+		inOrder1(root.left);
+		System.out.println(root.key);
+		inOrder1(root.right);
+	}
+	public List<Integer> inOrder(TreeNode root){
+		List<Integer> inOrder = new ArrayList<Integer>();
+		if (root == null){
+			return inOrder;
+		}
+		Deque<TreeNode> stack = new LinkedList<TreeNode>();
+		TreeNode cur = root;//treenode要先给cur，和pre不一样的
+		while (cur != null || !stack.isEmpty()){//这里的判断也不一样哦！因为把root给到了root，然后一直往左走，直到没有了，把上一个poll（就是左二子是null的那个）出来，给到inOrder，之后就可以打印啦！
+			if (cur != null){
+				stack.offerFirst(cur);
+				cur = cur.left;
+			} else{
+				cur = stack.poll();
+				inOrder.add(cur.key);
+				cur = cur.right;
+			}
+		}
+		return inOrder;
+		
+	}
+20.post-order traverse
+这道题比较难，以下的方法，对于if的判断要求比较高，在做的时候画一画图很重要，不然有点男分析。其中这里引入了prev,和curr两个node，这样才能保证我知道我先去左边，再去右边，以及知道右二子来了我才能go up !
+public List<Integer> postOrder(TreeNode root){
+		List<Integer> postOrder = new ArrayList<Integer>();
+		if (root == null){
+			return postOrder;
+		}
+		Deque<TreeNode> stack = new LinkedList<TreeNode>();
+		TreeNode prev = null;
+		stack.offer(root);
+		while (!stack.isEmpty() ){
+			TreeNode curr = stack.peek();//每回都要看一眼现在的node
+			if (prev == null || curr == prev.left || curr == prev.right ){
+				if (curr.left != null){
+					stack.offerFirst(curr.left);
+				} else if (curr.right != null){
+					stack.offerFirst(curr.right);
+				} else {
+					postOrder.add(curr.key);
+					stack.pollFirst();
+				}
+			} else if (prev == curr.right || prev == curr.left && curr.right == null){//这里很有意思，就是prev其实是curr的儿子，和物理上的previous不一样了，然后我们就能得知这到底是左儿子还是右儿子。这句是判断从下面的node上面的情况，上一个if是往下走的情况。这里是两个情况，一个是node从右边上来，一个是从左边上来但是没有右儿子，那么这时候，curr就该打印了。
+				postOrder.add(curr.key);
+				stack.pollFirst();
+			} else {//这个情况是node从左边上来，同时，curr有右儿子，那么就去找右儿子 
+				stack.offerFirst(curr.right);
+			}
+			prev = curr;
+		}
+		return postOrder;
+	}
+还有一个方法是和pre order反一下。
+public List<Integer> postOrder2(TreeNode root){
+		List<Integer> postOrder = new ArrayList<Integer>();
+		if (root == null){
+			return postOrder;
+		}
+		Deque<TreeNode> stack = new LinkedList<TreeNode>();
+		stack.offer(root);
+		while (!stack.isEmpty()){
+			TreeNode curr = stack.pollFirst();
+			postOrder.add(curr.key);
+			if (curr.left != null){
+				stack.offerFirst(curr.left);//注意，这里我们模拟stack，所以要用offerFirst,把每个元素加在头上，这样才能先进后出。如果是stack.offer，其实会变成模拟heap了，那么就会是先进先出了，因为会把后进的放在尾部（stack的尾部是在物理的前面（管子的底），因为LinkedList两个都能模拟，所以要小心使用，到底用哪个要看清楚情况！！）
+			}
+			if (curr.right != null){
+				stack.offerFirst(curr.right);
+			}
+			
+		}
+		Collections.reverse(postOrder);//这里，如果不反过来，顺序是root,right,left，因为把left先放进去，所以就后出来。
+		return postOrder;
+	}
+21.height and treenode number
+public int getHeight(TreeNode root){
+		if (root == null) return 0;
+		return Math.max(getHeight(root.left), getHeight(root.right))+1;
+	}
+时间复杂度是O（N）,空间复杂度是O（height），height最差情况是n，平均是log(n)。
+public int getNodeNumber(TreeNode root){
+		if (root == null) return 0;
+		return getNodeNumber(root.left) + getNodeNumber(root.right) + 1;
+	}
+
+22.check if binary tree is balanced
+public class CheckIfBalanced {
+	public int getHeight(TreeNode root){
+		if (root == null) return 0;
+		return Math.max(getHeight(root.left), getHeight(root.right))+1;
+	}
+	public boolean isBalanced(TreeNode root){
+		if (root == null){
+			return true;
+		}
+		if (Math.abs(getHeight(root.left) - getHeight(root.right)) > 1){
+			return false;
+		}
+		return isBalanced(root.left) && isBalanced(root.right);
+	}
+}
+时间复杂度：nlogn 因为调用了getheight。
+空间复杂度：logn
+以下是java solution的方法，思路是一样的，只是用-1来标志true和false。厉害之处在于把判断和get height的过程放在一起了！很厉害，这和recursion第二课的很多代码如出一辙，其实不需要一个helper也能够完成任务！这样的时间复杂度降低！是O（n）。最好情况能O（logn）。不需要helper function可以降低复杂度！！！！
+private boolean isBalanced2(TreeNode root){
+		if (root == null) return true;
+		return (isBalance(root) != -1);
+	}
+	private int isBalance(TreeNode root){
+		if (root == null) return 0;
+		int leftH = isBalance(root.left);
+		if (leftH == -1) return -1;
+		int rightH = isBalance(root.right);
+		if (rightH == -1) return -1;
+		if (Math.abs(leftH - rightH) > 1) return -1;
+		return Math.max(leftH,rightH) + 1;
+	}
+
+23.check if binary tree is symmetric
+这道题有点不一样！需要用到helper函数。大问题root是否对称，需要看他的左右是否对称，于是函数的传入应该就需要两个TreeNode了，因而就需要一个helper函数。在这个helper函数里，也需要注意判断方法！是判断key！而且最后判断的时候，是判断a和b不相等返回false，如果写a和b相等返回true的话，是会出错的！因为如果不相等，啥都不做，return 默认就是true了.
+public class CheckTreeIsSymmetric {
+	public boolean isSymmetric(TreeNode root){
+		if (root == null){
+			return true;
+		}
+		return isSymmetric(root.left,root.right) ;
+	}
+	public boolean isSymmetric(TreeNode rootA, TreeNode rootB){
+		if (rootA == null && rootB == null){
+			return true;
+		}
+		if (rootA == null || rootB == null){
+			return false;
+		}
+		if (rootA.key != rootB.key) return false;//必须return false，不然会默认是true！就是说如果a.key == b.key ，返回true的话，和ab的key实际上不相等返回的是一样的！！！
+		return isSymmetric(rootA.left, rootB.right) && isSymmetric(rootA.right, rootB.left);
+	}
+	
+}
+时间复杂度：O(n)
+空间：O(height) = O(logn)
+worst case是八字形的tree。左的左边和右的右边一直不是null，一直下去。
+24.check if tweaked identical binary tree
+public boolean isTweakedIdentical(TreeNode one, TreeNode two){
+		if (one == null && two == null){
+			return true;
+		}
+		if (one == null || two == null){
+			return false;
+		}
+		if (one.key != two.key) return false;
+		return (isTweakedIdentical(one.left, two.right) && isTweakedIdentical(one.right, two.left) || isTweakedIdentical(one.left, two.left) && isTweakedIdentical(one.right, two.right));//这里要注意了！因为是可以swap，所以会有两种情况！注意判断的时候对于case的讨论！！！
+	}
+25.check if binary search tree
+public class CheckIfBST {
+	//第一种方法是一个pre-order的做法，利用取值范围去做，每一个node都有取值范围，所以传入一个小，一个大，然后去recursion检验。那么这里就是pre-order，因为要先检验自己是不是合格，再往下走。
+public boolean isBST(TreeNode root){
+		return isBST(root, Integer.MIN_VALUE,Integer.MAX_VALUE);
+	}
+	private boolean isBST(TreeNode root, int min, int max){
+		if (root == null) return true;
+		if (root.key <= min || root.key >= max){
+			return false;
+		}
+		return isBST(root.left, min, root.key) && isBST(root.right, root.key, max);
+	}
+	//第二种方法，是类似in order traverse，因为binary search tree 以in order形式，出来是一个升序的数组，所以可以用in order的方法遍历，比较每一次是不是符合大小关系。
+private int lastValue;
+	public boolean isBST2(TreeNode root){
+		lastValue = Integer.MIN_VALUE;
+		return isBST2(root,lastValue);
+	}
+	private boolean isBST2(TreeNode root, Integer lastValue){
+		if (root == null) return true;
+		if (!isBST2(root.left, lastValue)){//先看左边
+			return false;
+		}
+		if (root.key <= lastValue){//执行比较
+			return false;
+		}
+		lastValue = root.key;//update 一下lastValue
+		return (isBST2(root.right,lastValue));//再看右边，完成in order的顺序！
+	}
+26.get keys from bst
+solution1:
+public class GetkeysBST {
+	List<Integer> n = new ArrayList<Integer>();
+	public List<Integer> getRange(TreeNode root, int min, int max){
+		if (root == null) return n;
+		if (root.key > max){
+			getRange(root.left, min, max);
+		} else if (root.key < min){
+			getRange(root.right, min, max);
+		} else {
+			getRange(root.left, min, max);
+			n.add(root.key);
+			getRange(root.right, min, max);
+		}
+		return n;
+	}
+}
+java solution的方法是调用一个helper，不断增加list的值。思路一样。
+时间复杂度是O（logn + k）本来是走左或走右，logn，但是有数字在的话呢，又要走一遍add那一块if，所以是两个的和。
+k指的是有多少个元素是在min 和max之间的。
+空间复杂度还是O（height）。
+
+Solution2:
+还可以直接in-order traverse，在范围内则加到list，这样写起来很方便
+List<Integer> list = new ArrayList<>();
+public List<Integer> getRange(TreeNode root, int min, int max) {
+    	if (root == null){
+	return list;
+}
+//in-order traverse
+getRange(root.left, min, max);
+if (root.key >= min && root.key <= max){
+	list.add(root.key);
+}
+getRange(root.right, min, max);
+return list;
+  
+
+27. kth smallest in an unsorted array（升序输出）
+方法一：利用max heap来存储最小的几个数字。因为max heap里面的元素是最大的在头顶，方便一次次peek去比较！每次加一个数，都能把最大的放在头上，这样就能保证heap里放着最小的k个数，最大的在顶上。
+public class KsmallestHeap {
+	public int[] kSmall(int[] array, int k){
+		if (k == 0){
+		      int[] n = new int[0];//return new int[0];
+		      return n;
+		    }
+		PriorityQueue<Integer> maxQ = new PriorityQueue<>(Collections.reverseOrder());//这样是最大的在top,每次offer一个数，都会重新sort,把最大的在上面。每次poll也一样，会重新campare一遍，把大的放在顶上，所以每次poll的一定是最大的。如果没有reverse，就会是最小的在顶上，那么peek就不好比较了。
+		for (int i = 0; i<k ;i++){
+			maxQ.offer(array[i]);
+		}
+		for (int i = k; i < array.length; i++){
+			if (array[i] < maxQ.peek()){
+				maxQ.offer(array[i]);
+				maxQ.poll();
+			}
+		}
+		int[] re = new int[k];
+		for (int i = k-1; i >= 0; i--){//因为每次poll都是最大的，因为要升序输出，就得poll到最后一个，反过来。
+			re[i] = maxQ.poll();
+		}
+		return re;
+	}
+这个方法的时间空间复杂度：
+时间：先heapify k个数，O（k）,然后是对比大小加进去，（n-k）logk.。（还有n-k次循环，每一次都是peek一下，然后offer ，然后poll, 是logk所以最后是O（k）+(n-k)logk。[不过这道题后面还poll到一个array里面，所以会增加klogk的时间]generally 是O（nlogk）因为k<<n
+方法二：用原本的排序，因为先heapify了所有，所以每次poll都会是最小的。时间复杂度：先heapify，是O（n）,然后poll了 k次，是klogn,所以最后是O（n + klogn）。generally 是
+public List<Integer> kSmall2(int[] array, int k){
+		List<Integer> list = new ArrayList<>();
+		PriorityQueue<Integer> minQ = new PriorityQueue<Integer>();
+		for (int i : array){
+			minQ.offer(i);
+		}
+		for (int i = 0; i < k; i++){
+			list.add(minQ.poll());
+		}
+		return list;
+	}
+方法三：使用quickselect，和quicksort很像。（我这里写的是没有排序的，最后再给前k个排个序就好，比如给到一个priorityqueue）
+public int[] quickSelect(int[] array,int k){
+		if (k == 0){
+			return new int[0];
+		}
+		int left = 0;
+		int right = array.length-1;
+		quickSelect(array, k, left, right);
+		return array;
+	}
+	private void quickSelect(int[] array,int k, int left, int right){
+		if (left > right){
+			return; 
+		}
+		int leftIndex = left;
+		int rightIndex = right-1;
+		Random rand = new Random();
+		int pivotIndex = left + rand.nextInt(right+1-left);//这个要记住怎么写！！！
+		swap(array, pivotIndex, right);
+		while (rightIndex >= leftIndex){//判断条件要简化！！
+			if (array[rightIndex] < array[right]){
+				swap(array,rightIndex,leftIndex);
+				leftIndex++;
+			} else if (array[leftIndex] > array[right]){
+				swap(array,rightIndex,leftIndex);
+				rightIndex--;
+			} else{
+				leftIndex++;
+				rightIndex--;
+			}
+		}
+		swap(array,leftIndex,right);
+		if (leftIndex == k){//这是和sort整个数组的区别，我们现在只需要sort一部分。
+			return;
+		} else if (leftIndex > k){
+			quickSelect(array,k,left,leftIndex-1);
+		} else{
+			quickSelect(array, k, leftIndex+1, right);
+		}
+		return;
+	}
+	private void swap(int[] array, int a, int b){
+		int tmp = array[a];
+		array[a] = array[b];
+		array[b] = tmp;
+	}
+quickselct的时间空间复杂度：
+时间：平均是O（n）,worst case是O（n^2）。
+时间是n + n/2 + n/4 + n/8+....因为每次只会走一边！所以不断减半，所以一共是2*n的时间，那么其实就是O（n）了！
+28.实现BFS（
+Get Keys In Binary Tree Layer By Layer
+）
+bfs1的很多细节我都搞错了，在while循环里用的是isEmpty()，而且offer之前要检查是不是null！！！
+public class bfsOne {
+	public void printLayer(TreeNode root){
+		if (root == null) return;
+		Queue<TreeNode> q = new LinkedList<TreeNode>();//还是要学会怎么写queue!!!!!用linkedlist还做，还要记得怎么写stack!!!!!这里是利用queue的FIFO!
+		q.offer(root);
+		while (!q.isEmpty()){
+			int n = q.size();
+			for (int i = 0; i < n; i++){
+				TreeNode a = q.poll();
+				if (a.left != null){
+					q.offer(a.left);
+				}
+				if (a.right != null){
+					q.offer(a.right);
+				}
+				System.out.print(a.key);
+			}
+			System.out.println("");
+		}
+	}
+ 29.BFS * 分层打印的graph node用法
+class GraphNode{
+	public int value;
+	public List<GraphNode> neighbors;
+	public List<Integer> weights;
+	public List<GraphNode> nei;
+	public boolean visited = false;这道题里，因为undirected，所以需要标记是否访问。
+}
+
+public class bfsTwo {
+	public void bfs(GraphNode start){
+		if (start == null) return;
+		Queue<GraphNode> queue = new LinkedList<>();
+		start.visited = false;
+		queue.offer(start);
+		while(!queue.isEmpty()){
+			int n = queue.size();
+			for (int i = 0; i<n; i++){
+				GraphNode curr = queue.poll();
+				System.out.println(curr.value);
+				for (GraphNode j : curr.nei){
+					if (j.visited == false){
+						queue.offer(j);
+						j.visited = true;
+					}
+				}
+			}
+		}
+	}
+}
+时间复杂度：O(V+E).WHILE LOOP走了V次，for loop走了E次。
+空间O（V）
+30.BFS**graph方法
+class GraphNode{
+	public int value;
+	public List<GraphNode> nei;
+	public boolean visited = false;
+}
+class BFS{
+public void bfs(GraphNode start){
+	Queue<GraphNode> queue = new LinkedList<GraphNode>();
+	if (start == null) return;
+	queue.offer(start);
+	while (!queue.isEmpty()){
+	GraphNode curr = queue.poll();
+	System.out.println(curr.value);
+	if (GraphNode.nei != null){//不需要判断有没有，直接走下面的循环！！
+	for (GraphNode i : GraphNode.curr.nei){
+	if (i.visited){
+	queue.offer(i);
+	i.visited = true;
+}
+}
+}
+}
+}
+public void bfs3(TreeNode root){
+		Queue<TreeNode> queue = new LinkedList<TreeNode>();
+		if (root == null) return;
+		queue.offer(root);
+		while (!queue.isEmpty()){
+			TreeNode curr = queue.poll();
+			System.out.println(curr.key);
+			if (curr.left != null){
+				queue.offer(curr.left);
+			}
+			if (curr.right != null){
+				queue.offer(curr.right);
+			}
+		}
+	}
+
+}
+31.check if binary tree is a complete binary tree
+注意把判断条件写的更有条理！我自己的方法太麻烦了。
+两种情况：1.自己缺孩子，那么只要后面的node缺孩子，就false。2.没有左孩子，却有有孩子，是false。
+
+public boolean isCompleted2(TreeNode root){
+		if (root == null) return true;
+		Queue<TreeNode> queue = new LinkedList<TreeNode>();
+		queue.offer(root);
+		boolean flag = true;
+		while (!queue.isEmpty()){
+			TreeNode curr = queue.poll();
+			if (curr.left == null && curr.right != null) return false;
+			if (!flag && (curr.left != null || curr.right != null)) return false;//这一句没有想到。
+			if (curr.left == null || curr.right == null){
+				flag = false;
+			}
+			if (curr.left != null){
+				queue.offer(curr.left);
+			}
+			if (curr.right != null){
+				queue.offer(curr.right);
+			}
+		}
+		return true;
+}
+32.Bipartite
+GraphNode可以分成两个派别。自己人不相连。
+注意这个方法对于孤立的node无法判断！因为他们没有neighbors!!但显然没有neighbors符合要求。只是提醒一下，孤立的node不能被忽视。
+class GraphNodeA{
+	int key;
+	int set = 0;//0代表没有染色，-1代表一种，1代表另一种。
+	List<GraphNodeA> nei;
+	public GraphNodeA(int key){
+		this.key = key;
+		this.nei = new ArrayList<GraphNodeA>();
+	}
+}
+public class Bipartite {
+	public boolean isBipartite2(GraphNodeA start){
+		Queue<GraphNodeA> queue = new LinkedList<GraphNodeA>();
+		if (start == null) return true;
+		queue.offer(start);
+		start.set = 1;//先在外面吧start给染个色。
+		while (!queue.isEmpty()){
+			GraphNodeA curr = queue.poll();
+			for (GraphNodeA i : curr.nei){
+				if (i.set == 0) i.set = curr.set * -1;
+				if (i.set == curr.set) return false;
+				queue.offer(i);
+			}
+		}
+		return true;
+	}
+33.K Closest In Sorted Array
+思路没有问题，因为上课讲过，但是写的太复杂了。很多地方需要精炼。本题结合了寻找最近的元素，然后merge！java solution的做法详见my coding pad
+package binary;
+
+public class Kcloset {
+	public int[] kClosest(int[] array, int target, int k) {
+		if (array == null || array.length == 0) {
+			return array;
+		}
+		int[] arr = new int[k];
+		int right = array.length - 1;
+
+		int left = 0;
+		int min = closet(left, right, array, target);
+		if (min == right) {
+			for (int j = 0; j < k; j++) {
+				arr[j] = array[right - j];
+			}
+			return arr;
+		}
+		if (min == 0) {
+			for (int j = 0; j < k; j++) {
+				arr[j] = array[j];
+			}
+			return arr;
+		}
+		if (k == 1) {
+			arr[0] = array[min];
+			return arr;
+		}
+		int[] Srr = new int[min+1];
+		int[] Lrr = new int[array.length - 1 - min];
+		for (int i = 0; i <= min; i++) {
+			Srr[min - i] = array[i];
+		}
+		for (int i = 0; i < array.length - 1 - min; i++) {
+			Lrr[i] = array[min + i + 1];
+		}
+		return merge(Srr, Lrr, k, target);
+	}
+
+	public int closet(int left, int right, int[] array, int target) {
+		while (left < right - 1) {
+			int mid = left + (right - left) / 2;
+			if (array[mid] > target) {
+				right = mid;
+			} else if (array[mid] < target) {
+				left = mid;
+			} else {
+				return mid;
+			}
+		}
+		if (Math.abs(target - array[left]) > Math.abs(target - array[right])) {
+			return right;
+		} else {
+			return left;
+		}
+	}
+
+	public int[] merge(int[] arr, int[] brr, int k, int target) {
+		int count = 0;
+		int s = 0, l = 0;
+		int[] solu = new int[k];
+		while (s <= arr.length - 1 && l <= brr.length - 1) {
+			if (Math.abs(arr[s] - target) > Math.abs(brr[l] - target)) {
+				solu[count] = brr[l];
+				l++;
+				count++;
+			} else {
+				solu[count] = arr[s];
+				s++;
+				count++;
+			}
+			if (count == k ) {
+				return solu;
+			}
+		}
+		if (s < arr.length - 1) {
+			for (int i = 0; i < k - l; i++) {
+				solu[count] = arr[s + i];
+				count++;
+			}
+		}
+		if (l < brr.length - 1) {
+			for (int i = 0; i < k - s; i++) {
+				solu[count] = arr[l + i];
+				count++;
+			}
+		}
+		return solu;
+	}
+
+	public static void main(String[] args) {
+		int[] arr = { 1,3,3,6,9,9,12,15 };
+		int target = 10;
+		int k = 5;
+		Kcloset solu = new Kcloset();
+		int[] brr = solu.kClosest(arr, target, k);
+		for (int i : brr) {
+			System.out.println(i);
+		}
+	}
+}
+34.Search In Unknown Sized Sorted Array
+
+public class Solution {
+  public int search(Dictionary dict, int target) {
+    // Write your solution here
+    if (dict == null){
+      return -1;
+    
+    int right = 1;
+    while (dict.get(right) != null && dict.get(right) < target){//注意这里要先判断是不是null！！
+      right = right * 2;
+    
+    int left = 0;//这里left从0 开始还是从right/2开始的时间复杂度还是不变的，因为以开始是log2(n) + log2(2n) 是O（logn），从right/2开始也是。。但是呢，如果每次跳10倍，还是10倍更快。
+    while(left <= right){//等于的时候也再判断一下，反正有+1和-1在，不用担心无限循环。
+      int mid = left + (right - left) / 2;
+      if (dict.get(mid) == null || dict.get(mid) > target) {//这里把null的情况整合了进来，很重要！然后也是要先判断是不是null!!!!
+        right = mid -1;
+      } else if (dict.get(mid) < target){
+       left = mid + 1; 
+      } else{
+        return mid;
+      
+    
+    return -1;
+  
+}
+35.Kth Smallest Number In Sorted Matrix
+这道题有2个重要的点，1是用minHeap来存每加一个元素后最小的。2.新建了一个类cell来帮助记录行数、列数和自己的值，这个很重要，复习写的时候一直没有想起来！
+package priorityQ;
+import java.util.*;
+public class KthSmallestInMatrix {
+	static class Cell{
+		int row;
+		int column;
+		int value;
+		Cell(int row, int column, int value){
+			this.row = row;
+			this.column = column;
+			this.value = value;
+		}
+	}
+	public int kthSmallest(int[][] matrix, int k){
+		int rows = matrix.length;
+		int columns = matrix[0].length;
+		//接着定义priority queue为minHeap,因为我们要得到第k小的数，不断选出最小的放在头上。
+		PriorityQueue<Cell> minHeap = new PriorityQueue<Cell> (k, new Comparator<Cell>(){
+			public int compare(Cell c1, Cell c2){
+				if (c1.value == c2.value){
+					return 0;
+				}
+				return c1.value < c2.value? -1 : 1;
+			}
+		});
+		boolean[][] visited = new boolean[rows][columns];
+		minHeap.offer(new Cell(0,0,matrix[0][0]));
+		visited[0][0] = true;
+		for (int i = 0; i < k-1; i++){//只需要k-1次，因为第一次其实已经做好了，就是【0，0】,所以k-1次就可以把第K小的数放在顶上，然后peek一下就OK！
+			Cell cur = minHeap.poll();
+			if (cur.row + 1 < rows && !visited[cur.row + 1][cur.column]){//这里我们把没有见过的元素offer到heap里面，要注意这里rows和columns是数组长度，所以是小于，没有等于。
+																		//然后大家自动就排序了，最小的会被放在最上面
+				minHeap.offer(new Cell(cur.row + 1, cur.column, matrix[cur.row + 1][cur.column]) );
+				visited[cur.row + 1][cur.column] = true;
+			}
+			if (cur.column + 1 < columns && !visited[cur.row][cur.column + 1]){
+				minHeap.offer(new Cell(cur.row, cur.column + 1, matrix[cur.row][cur.column + 1]));
+				visited[cur.row][cur.column + 1] = true;
+			}
+		}
+		return minHeap.peek().value;
+	}
+}
+36.All Valid Permutations Of Parentheses I
+这道题目java solution用的是一个叫cur的长度为2n的char[]，这样的话，每一个位置，我第二次就直接覆盖掉就可以了，不需要想stringbuilder那样删除。最后生成string只需要new String(cur)。这道题我用的是numOfLeft记录放入的左括号的数量。java solution用的是反过来的方法，就是说用的是还剩的左括号和右括号，这样的话，base case就写成两者都是0就返回。而且在处理加不加右括号上，思路写起来也蛮只管，直接right > left，就可以加因为剩余的right多了，得加进去。
+package dfs;
+import java.util.*;
+public class AllPermuOfParenthesis {
+	public List<String> validParentheses(int n) {
+	    List<String> result = new ArrayList<>();
+		if (n == 0){
+	    	result.add("");
+	    	return result;
+	    }
+		StringBuilder sb = new StringBuilder();
+		permuParentheses(result, n, 0,sb,0);
+		return result;
+	  }
+	private void permuParentheses(List<String> result, int n, int index, StringBuilder sb,int numOfLeft){
+		if (index == 2*n){
+			result.add(sb.toString());
+			return;
+		}
+		if (numOfLeft < n ){
+			permuParentheses(result,n,index + 1, sb.append('('),numOfLeft + 1);
+			sb.deleteCharAt(sb.length()-1);
+		}
+		if (2 * numOfLeft >= index + 1){
+			permuParentheses(result,n,index + 1, sb.append( ')'),numOfLeft);
+			sb.deleteCharAt(sb.length()-1);//这道题是选你或者选我的问题！所以每次加完都要删除！
+		}
+	}
+	public static void main(String[] args){
+		AllPermuOfParenthesis solu = new AllPermuOfParenthesis();
+		System.out.println(solu.validParentheses(3));
+	}
+	
+}
+37.Combinations Of Coins-DFS
+method1:我自己的解法
+我的方法因为最后的base case是所有coin都用完了，再看一下是不是总和正好，这样会多走一些branches!所有我们最后的base case放在还剩一种coin没有加的地方，然后，把能加的coin加进去，凑成target，不能凑，那么不走，就不用加到result里面！这就是方法2。见后面的java solution。
+package dfs;
+import java.util.*;
+public class Coins {
+	public List<List<Integer>> coinsCombine(int target, int[] coins){
+		List<List<Integer>> result = new ArrayList<List<Integer>>();
+		List<Integer> combine = new ArrayList<>();
+		coin(target,coins,result,0,combine);
+		return result;
+	}
+	private void coin(int target, int[] coins, List<List<Integer>> result, int index,List<Integer> combine){
+		if (index == coins.length){
+			if (target == 0) {
+				result.add(new ArrayList<Integer>(combine));//注意这个地方必须要new一个arraylist才可以！不然的话，把combine作为地址进去了，会随着combine不断变化！！！
+			}
+			return;
+		}
+		for (int i = 0; i <= (target/coins[index]); i++){
+			combine.add(i);
+			coin(target - i * coins[index],coins, result, index+1,combine);
+			combine.remove(combine.size()-1);
+		}
+	}
+	public static void main(String[] args){
+		Coins solu = new Coins();
+		int[] coins = {1,2,3};
+		System.out.println(solu.coinsCombine(10, coins));
+	}
+}
+这里有一个地方要注意！！！
+public class test {
+	public static void main(String[] args){
+		List<List<Integer>> a = new ArrayList<>();
+		List<Integer> b = new ArrayList<>();
+		b.add(3);
+		a.add(b);
+		b.remove(0);
+		b.add(4);
+		a.add(b);
+		System.out.println(a);
+		a.add(new ArrayList<Integer>(b));
+		b.remove(0);
+		System.out.println(a);
+		//这里输出结果可以发现，如果我之前传的是b，其实传的是一个对象的引用，那么b对应的在heap上的地址就给了a，那么地址上的东西变了
+		//a里的东西指着地址，就也跟着地址变了！但是如果我传进去的时候是new一个，这样的话，我就只是把值给了新的那个东西，在heap上有了
+		//一个新的地方存着！！！这个很重要！
+	}
+}
+output:
+[[4], [4]]
+[[], [], [4]]
+method2:
+private void coin2(int target, int[] coins, List<List<Integer>> result, int index,List<Integer> combine){
+		if (index == coins.length - 1){
+			if (target % coins[index] == 0){
+				combine.add(target/coins[index]);
+				result.add(new ArrayList<Integer>(combine));
+				combine.remove(combine.size()-1);
+			}
+			return;
+		}
+		for (int i = 0; i <= (target/coins[index]); i++){
+			combine.add(i);
+			coin(target - i * coins[index],coins, result, index+1,combine);
+			combine.remove(combine.size()-1);
+		}
+	}
+
+38.ALL Permutation I(No duplicates)DFS
+DFS.这道题，就可以用swap的方法去做了，如果遇到每一个排列会使用所有元素的话，这种情况下我们可以用swap,大家轮流坐第index的那个位置。helper2是更好的方法，因为不需要用到stringbuilder，有时候我们需要用，但这道题目，只需要排列一下，所以直接原地换来换去就可以了！最后再把char[] 通过String(char[]) 转换成string就可以了！base case 是index(表示每一个位置)从0开始，直到等于数组长度，说明已经用完所以元素了，就可以返回了。这道题是DFS，所以关注index代表什么含义，有多少个level，每一层做什么事情，有多少个状态需要try。
+package dfs;
+import java.util.*;
+public class permulationI {
+	public List<String> permulate(String input){
+		List<String> result = new ArrayList<>();
+		if (input == null){
+			return  result;
+		}
+		char[] ch = input.toCharArray();
+		StringBuilder permu = new StringBuilder();
+		//helper(result, ch, 0, permu);
+		helper2(result,ch,0);
+		return result;
+	}
+	private void helper(List<String> result, char[] ch, int index, StringBuilder permu){
+		if (index == ch.length){
+			result.add(permu.toString());
+		}
+		for (int i = index; i < ch.length; i++){
+			swap(ch, index, i);
+			permu.append(ch[index]);
+			helper(result, ch, index + 1, permu);
+			permu.deleteCharAt(permu.length()-1);
+			swap(ch, index, i);
+		}
+	}
+	private void helper2(List<String> result, char[] ch, int index){
+		if (index == ch.length){
+			result.add(new String(ch));
+			return;
+		}
+		for (int i = index; i < ch.length; i++){//attention!here i starts from index!!!!
+			swap(ch,i,index);
+			helper2(result, ch, index + 1);
+			swap(ch,i,index);
+		}
+	}
+	private void swap(char[] ch, int a, int b){
+		char tmp = ch[a];
+		ch[a] = ch[b];
+		ch[b] = tmp;
+	}
+	public static void main(String[] args){
+		String s = "abc";
+		permulationI solu = new permulationI();
+		System.out.println(solu.permulate(s));
+	}
+}
+39.All Permutations II(with duplicates)-DFS
+这道题需要在每一次交换之前看一看这个元素是不是已经被用过了。于是用一个she<Character>就好！
+package dfs;
+
+import java.util.*;
+
+public class permulationII {
+	public List<String> permulations(String set){
+		List<String> result = new ArrayList<>();
+		if (set == null){
+			return  result;
+		}
+		char[] ch = set.toCharArray();
+		helper(result, ch, 0);
+		return result;
+	}
+	private void helper(List<String> result, char[] ch, int index){
+		if (index == ch.length){
+			result.add(new String(ch));
+			return;
+		}
+		//这里要用character in stead of char. Because we need to guarantee in this level, no duplicate ch to be used
+		Set<Character> chSet = new HashSet<>(); 
+		for (int i = index; i < ch.length; i++){
+			if (!chSet.contains(ch[i])){
+				chSet.add(ch[i]);//don;t forget to add this ch into hashset
+				swap(ch,index,i);
+				helper(result, ch, index + 1);
+				swap(ch, index, i);
+			}
+		}
+	}
+	private void swap(char[] ch, int a, int b){
+		char tmp = ch[a];
+		ch[a] = ch[b];
+		ch[b] = tmp;
+	}
+	public static void main(String[] args){
+		String s = "abbc";
+		permulationII solu = new permulationII();
+		System.out.println(solu.permulations(s));
+	}
+}
+40.reorder linkedlist!
+package Linkedlist;
+
+public class ReverseLinkedList {
+	private ListNode reverse(ListNode head){
+		if (head == null || head.next == null){//注意base case有两个条件！！！！
+			return head;
+	}
+	/*
+	 * we can use while loop to do this. we need use previous node.
+	 * the following one is my method which uses recursion but may not as good as java solution
+	ListNode next = head.next;
+	ListNode newHead = reverse(next);
+	next.next = head;
+	head.next = null;
+	return newHead;
+	*/
+	//在循环里面，只做了一件事情，就是把当前的head指向了null。然后prev,head都向右移动
+	ListNode prev = null;
+	while (head != null){
+		ListNode next = head.next;
+		head.next = prev;
+		prev = head;
+		head = next;
+	}
+	return prev;
+	}
+	public ListNode reorder(ListNode head){
+		if (head == null || head.next == null){
+			return head;
+		}
+		ListNode mid = findMid(head,head);
+		ListNode head2 = mid.next;
+		mid.next = null;
+		return reorder(head,reverse(head2));
+	}
+	public ListNode findMid(ListNode slow, ListNode fast){
+		if (fast.next == null || fast.next.next == null){
+			return slow;
+		}
+		slow = slow.next;
+		fast = fast.next.next;
+		return findMid(slow,fast);
+	}
+	public ListNode findmid(ListNode head){//find the middle node using while loop(java solution)if number is even,find the former one
+		if (head == null){
+			return head;
+		}
+		ListNode slow = head;
+		ListNode fast = head;
+		while (fast.next != null && fast.next.next != null){
+			slow = slow.next;
+			fast = fast.next.next;
+		}
+		return slow;
+	}
+	private ListNode reorder(ListNode head, ListNode head2){
+		/*
+		 we can use while loop to reorder , “谁小移谁”! Then we need a dummy head to do this!! Much easier than 
+		 the following methods because I use too many if to make sure some cases.
+		in the end we see if there are remaining nodes in head, add it to the tail. 
+		 
+		if (head2.next == null){
+			if (head.next == null){
+				head.next = head2;
+				return head;
+			}
+			ListNode next = head.next;
+			head.next = head2;
+			head2.next = next;
+			return head;
+		}
+		ListNode next1 = head.next;
+		ListNode next2 = head2.next;
+		ListNode newHead = reorder(next1,next2);
+		head.next = head2;
+		head2.next = newHead;
+		return head;
+		*/
+		ListNode dummy = new ListNode(0);
+		ListNode cur = dummy;
+		while (head2 != null && head != null){
+			cur.next = head;
+			head = head.next;
+			cur.next.next = head2;
+			head2 = head2.next;
+			cur = cur.next.next;
+		}
+		if (head != null){
+			cur.next = head;
+		} else {
+			cur.next = head2;
+		}
+		return dummy.next;
+	}
+	public static void main(String[] args){
+		ListNode solu = new ListNode(1);
+		solu.next = new ListNode(2);
+		solu.next.next = new ListNode(3);
+		solu.next.next.next = new ListNode(4);
+		solu.next.next.next.next = new ListNode(5);
+		ReverseLinkedList s = new ReverseLinkedList();
+		//System.out.println(s.findMid(solu,solu).value);
+		solu = s.reorder(solu);
+		while (solu != null){
+			System.out.println(solu.value);
+			solu = solu.next;
+		}
+		
+	}
+}
+41.Largest SubArray Sum--DP
+public class LargestSumOfArray {
+	//look back to compare current contribution plus itself and itself, then compare this to global max; 
+	//java solution uses Math.max
+	public int largestSum(int[] array){
+		if (array == null || array.length == 0){
+			return 0;
+		}
+		int curr = array[0];
+		int max = array[0];
+		for (int i = 1; i < array.length; i++){
+			curr = Math.max(array[i],curr+array[i]);
+			max = Math.max(curr,max);
+		}
+		return max;
+	}
+	//this is my solution;including print the start and end index of the largest sum subarray;use start and end
+	//to track; start will change iif current is larger then max and current is just the array[i]
+	public int largesSum(int[] array){
+		if (array == null || array.length == 0){
+			return 0;
+		}
+		int M = array[0];
+		int start = 0;
+		int end = 0;
+		int max = array[0];
+		for (int i = 1; i< array.length; i++){
+			if (M > 0){
+				M = M + array[i];
+			} else {
+				M = array[i];
+				
+			}
+			if (M > max){
+				if (M == array[i]){
+					start = i;
+				}
+				max = M;
+				end = i;
+			}
+		}
+		//System.out.println(start);
+		//System.out.println(end);
+		return max;
+	}
+	
+	public static void main(String[] args){
+		int[] array = {1,2,5,-2,-8,4};
+		LargestSumOfArray lSum = new LargestSumOfArray();
+		System.out.println(lSum.largestSum(array));
+	}
+}
+42.Dictionary Word I-DP
+
+
+这道题是linear scan的经典，熟练运用了一维DP的方法，分为左大段和右小段。不断手动check右小段。做DP的时候可以在纸上画一画，比较好理解变量的物理意义！！这道题的case编号和substring的编号很容易会搞混，最好画一下。
+time:O(n^3)因为用到了substring 这个O（n）消耗的api
+
+package DP;
+import java.util.*;
+public class Dict1 {
+	/*
+	 the following is java solution.
+	 */
+	public boolean canBreak(String input,String[] dict){
+		if (input == null){
+			return false;
+		}
+		Set<String> wordict = toSet(dict);
+		//making the boolean [] a little bigger so that the index is easier to control
+		boolean[] M = new boolean[input.length() + 1];
+		M[0] = true;
+//这里如果初始化了M【0】,那么j can start from 0! if we don't initiate M[0] here, then we can add tat following
+		//paragraph and change for (int j = 0) to j =1。the that commented paragraph initiate M[0].就是一刀都不切的情况。
+		//一刀不切的情况是可以被涵盖在循环里的，但就是要初始化第一个M，不然回头看不了了！所有这里java solution makes the M[] one element 
+		//bigger to have M[0] = true as a start boolean to for us to look back when we have the first substring.
+
+		for (int i = 1; i < M.length; i++){
+			/*
+			if (wordict.contains(input.substring(0, i))){
+				M[i] = true;
+				continue;
+			}
+			*/
+			for (int j = 0; j < i; j++){
+				if (M[j] && wordict.contains(input.substring(j,i))){
+					M[i] = true;
+					break;
+				}
+			}
+		}
+		return M[input.length()];
+		
+	}
+	private Set<String> toSet(String[] dict){
+		Set<String> dic = new HashSet<>();
+		for (String i : dict){
+			dic.add(i);
+		}
+		return dic;
+	}
+	/*
+	 the following is my solution. So the index is not easy to figure out here!!
+	 Pay attention to the index of case and the index to the start of substring we want to manually check!!
+	 */
+	public boolean canBreak2(String input,String[] dict){
+		if (input == null){
+			return false;
+		}
+		boolean[] M = new boolean[input.length()];
+		for (int i = 0; i < input.length(); i++){
+			if (isSubIn(input.substring(0, i+1),dict)){//检查一刀不切的情况，但也是可以被涵盖在下面的循环里的，就是需要多加一个初始化M【0】的步骤。见上面的做法。
+				M[i] = true;
+				continue;
+			}
+			for (int j = 0; j < i; j++){
+				if (M[j] && isSubIn(input.substring(j + 1, i + 1),dict)){
+					//j should plus 1...find this when debugging. we use the previous M[j] then check right one which starts at j + 1. so we should use j + 1 here. and substring(a,b) excludes b
+					//so here should use i+1
+					M[i] = true;
+					break;
+				}
+			}
+		}
+		return M[input.length() - 1];
+	}
+	private boolean isSubIn(String str, String[] dict){
+		for (String i : dict){
+			if (str.equals(i)){
+				return true;
+			}
+		}
+		return false;
+	}
+	public static void main(String[] args){
+		String[] dict = {"bob","cat","rob"};
+		Dict1 dic = new Dict1();
+		System.out.println(dic.canBreak("bobcat",dict));
+	}
+}
+43.Edit Distance-DP
+这道题是二维DP的题目，需要向三个方向看历史记录，从左上开始填表，DP就像是填一张二维矩阵的表，不停参考之前的值，这里关键的是做好四个case的分类。这里base case有三种，其中两种是当另一个没有字母，i or j = 0,这时候就是需j 或者 i 步，这个很好理解。另外就是他们是当前两个字母相等的时候，要注意，这里的i/j其实是case 的号码，case是从0开始，即一个字母都没有的时候，所以第一个字母对应的case已经是1了，所以当要check字母是否相等时，用的是i-1。Time:O(m*n)
+package DP;
+
+public class EditDistance {
+	public int editDistance(String one, String two){
+		int[][] distance = new int[one.length() + 1][two.length() + 1];
+		//还是要注意物理意义，i和j表示的是case的编号。distance[i][j] to represent substring(0,i) in one and substring(0,j) in two
+		for (int i = 0; i <= one.length(); i++){
+			for (int j = 0; j <= two.length(); j++){
+				if (i == 0){
+					distance[i][j] = j;
+				} else if (j == 0){
+					distance[i][j] = i;
+				} else if (one.charAt(i - 1) == two.charAt(j - 1)){//case 1 对应的字母确实是0，所以需要-1
+					distance[i][j] = distance[i-1][j-1];
+				} else {
+					distance[i][j] = Math.min(Math.min(distance[i-1][j],distance[i][j-1]),distance[i-1][j-1]) + 1;
+				}
+			}
+		}
+		return distance[one.length()][two.length()];
+	}
+	public static void main(String[] args){
+		String one = "abc";
+		String two = "bc";
+		EditDistance dis = new EditDistance();
+		System.out.println(dis.editDistance(one, two));
+		
+	}
+}
+44.largest square sum-DP
+这道题目的方法在于关注一个正方形的右下角那个元素，以他为右下角的正方形最多几条边呢？？那么久得看他的邻居们的最小的边数了！于是又开始填表啦！注意这道题就不用case number了！直接表示了那个位置，所以index很清晰明了！java solution的代码更加简练！需要学习.time:O(n^2)
+java solution 思路图：
+
+
+package DP;
+
+public class largestSquareOf1s {
+	private int largest1(int[][] matrix){
+		int n = matrix.length;
+		if (n == 0){
+			return 0;
+		}
+		int[][] edge = new int[n][n];
+		int max = 0;
+		for (int i = 0; i < n; i++){
+			for (int j = 0; j < n; j++){
+				if (i == 0 || j == 0){
+					edge[i][j] = matrix[i][j] == 1? 1 : 0;//这个表达很好！！要学习！
+				} else if (matrix[i][j] == 1) {//这里只有等于1的情况，那么0的情况呢？？是依靠零假空的原则！！！自然而然就是0了！
+					edge[i][j] = Math.min(Math.min(edge[i-1][j], edge[i][j-1]),edge[i-1][j-1]) + 1;
+				}
+				max = Math.max(max, edge[i][j]);
+			}
+		}
+		return max;
+	}
+	//the following is my solution and some code can be shorter!!
+	public int largest(int[][] matrix){
+		int[][] edge = new int[matrix.length][matrix.length];
+		int max = 0;
+		for (int i = 0; i < matrix.length; i++){
+			for (int j = 0; j < matrix.length; j++){
+				if (matrix[i][j] == 0){
+					edge[i][j] = 0;
+					continue;
+				}
+				if (i == 0){
+					edge[i][j] = matrix[0][j];
+				} else if (j == 0){
+					edge[i][j] = matrix[i][0];
+				} else {
+					edge[i][j] = Math.min(Math.min(edge[i-1][j], edge[i][j-1]),edge[i-1][j-1]) + 1;
+				}
+				if (edge[i][j] > max){
+					max = edge[i][j];
+				}
+			}
+		}
+		return max;
+	}
+}
+45.longest consecutive 1s-DP
+public class Solution {
+  public int longest(int[] array) {
+    // Write your solution here.
+    int currone = 0;
+    int max = 0;
+    for (int i = 0; i < array.length; i++){
+      if (array[i] == 1){
+        currone++;
+        max = currone > max ? currone : max;
+      } else {
+        currone = 0;
+      }
+    }
+    return max;
+  }
+}
+46.longest cross-DP
+time:O(n^2)
+package DP;
+
+public class longestCross {
+	public int largest(int[][] matrix){
+		if (matrix == null){
+			return 0;
+		}
+		int n = matrix.length;
+		if (n == 0){
+		  return 0;
+		}
+		if (matrix[0] == null){
+			return 0;
+		}
+		int m = matrix[0].length;
+		if (m == 0){
+		  return 0;
+		}
+		int[][] leftUp = calcu1(n,m,matrix);
+		int[][] rightDown = calcu2(n,m,matrix);
+		return merge(leftUp,rightDown,n,m);
+		
+	}
+	//把左边的arm和上边的arm放在一起计算！很厉害的思路！其实i和j用的是一样的，但是回头看的数值就是不一样的，这样就可以实现他们自己arm上连续1的计算了！！很机智！
+	private int[][] calcu1(int n, int m, int[][] matrix){
+		int[][] left = new int[n][m];	
+		int[][] up = new int[n][m];	
+		for (int i = 0; i < n; i++){
+			for (int j = 0; j < m; j++){
+				if (matrix[i][j] == 1){
+					if (i == 0 && j== 0){
+						up[i][j] = 1;
+						left[i][j] = 1;
+					} else if (i == 0){
+						left[i][j] = left[i][j - 1] + 1;
+						up[i][j] = 1;
+					} else if (j == 0){
+						left[i][j] = 1;
+						up[i][j] = up[i - 1][j] + 1;
+					} else {
+						left[i][j] = left[i][j - 1] + 1;
+						up[i][j] = up[i - 1][j] + 1;
+					}
+				}
+			}
+		}
+		merge(left, up, n, m);
+		return left;
+	}
+	private int[][] calcu2(int n, int m, int[][] matrix){
+		int[][] right = new int[n][m];	
+		int[][] down = new int[n][m];	
+		for (int i = n - 1; i >= 0; i--){
+			for (int j = m - 1; j >= 0; j--){
+				if (matrix[i][j] == 1){
+					if (i == n - 1 && j == m - 1){
+						down[i][j] = 1;
+						right[i][j] = 1;
+					} else if (i == n - 1){
+						right[i][j] = right[i][j + 1] + 1;//这里i表示行，j表示列！不要搞错啦。注意这里是从从下往上，右往左填表，so我们应该想要用到+1的值是多少才能知道自己是多少！！
+！
+						down[i][j] = 1;
+											} else if (j == m - 1){
+						right[i][j] = 1;
+						down[i][j] = down[i + 1][j] + 1;
+					} else {
+						right[i][j] = right[i][j + 1] + 1;//注意！这里不是都减一！！！这个很重要！不能搞错！
+						down[i][j] = down[i + 1][j] + 1;
+					}
+				}
+			}
+		}
+		merge(right, down, n, m);
+		return right;
+	}
+	private int merge(int[][] one, int[][] two, int n, int m){
+		int max = 0;
+		for (int i = 0; i < n; i++){
+			for (int j = 0; j < m; j++){
+					one[i][j] = Math.min(one[i][j], two[i][j]);
+					max = Math.max(max, one[i][j]);
+			}
+		}
+		return max;
+	}
+	
+	
+	
+	//the following is my solution but a bit more complex.
+	public int largest1(int[][] matrix) {
+		// Write your solution here.
+		if (matrix == null){
+			return 0;
+		}
+		int n = matrix.length;
+		if (n == 0){
+		  return 0;
+		}
+		if (matrix[0] == null){
+			return 0;
+		}
+		int m = matrix[0].length;
+		if (m == 0){
+		  return 0;
+		}
+		// in four directions we run 连续1
+		int[][] mtd = new int[n][m];
+		int[][] mdt = new int[n][m];
+		int[][] mlr = new int[n][m];
+		int[][] mrl = new int[n][m];
+		int result = 0;
+		int max = 0;
+		
+		for (int i = 0; i < n; i++) {
+			int currone = 0;//注意每次要清零！！！
+			for (int j = 0; j < m; j++) {
+				if (matrix[i][j] == 1) {
+					currone++;
+				} else {
+					currone = 0;
+				}
+				mlr[i][j] = currone;
+			}
+			currone = 0;
+			for (int j = m - 1; j >= 0; j--) {
+				if (matrix[i][j] == 1) {
+					currone++;
+				} else {
+					currone = 0;
+				}
+				mrl[i][j] = currone;
+			}
+		}
+		for (int j = 0; j < m; j++) {
+			int currone = 0;
+			for (int i = 0; i < n; i++) {
+				if (matrix[i][j] == 1) {
+					currone++;
+				} else {
+					currone = 0;
+				}
+				mtd[i][j] = currone;
+			}
+			currone = 0;
+			for (int i = n - 1; i >= 0; i--) {
+				if (matrix[i][j] == 1) {
+					currone++;
+				} else {
+					currone = 0;
+				}
+				mdt[i][j] = currone;
+			}
+		}
+		for (int i = 0; i < n; i++) {
+			for (int j = 0; j < m; j++) {
+				if (matrix[i][j] == 0) {
+					continue;
+				}
+				result = Math.min(mrl[i][j], mlr[i][j]);
+				result = Math.min(mdt[i][j], result);
+				result = Math.min(mtd[i][j], result);
+				max = result > max ? result : max;
+			}
+		}
+		return max;
+	}
+	public static void main(String[] args){
+		int[][] test = new int[][]{{1,1,0,1,1,1,1,1},{1,0,1,0,1,1,1,1},{1,0,1,1,1,1,1,1},{1,1,0,1,0,1,1,1},{0,0,0,1,1,1,1,1}};
+		longestCross solu = new longestCross();
+		System.out.println(solu.largest1(test));
+	}
+}
+47.Largest X Of 1s--DP
+我这道题使用了java solution的做法，就是用了一个merge在预处理的时候也再预预处理一下，先选一次小的那个数，然后存起来。同时，因为这里判断的if条件比较多，再写一个getNumber的helper function会好很多！！！这样code会短。
+package DP;
+
+public class largestXCross {
+	public int largest(int[][] matrix) {
+		if (matrix == null || matrix.length == 0) {
+			return 0;
+		}
+		int n = matrix.length;
+		int m = matrix[0].length;
+		if (m == 0) {
+			return 0;
+		}
+		int[][] up = calOnesU(matrix, n, m);
+		int[][] down = calOnesD(matrix, n, m);
+		return merge(n, m, up, down);
+	}
+	//计算左上和右上
+	private int[][] calOnesU(int[][] matrix, int n, int m) {
+		int[][] left = new int[n][m];
+		int[][] right = new int[n][m];
+		for (int i = 0; i < n; i++) {
+			for (int j = 0; j < m; j++) {
+				if (matrix[i][j] == 1) {
+					//要注意这里所有的case都要考虑到！不然会outofbound!然而代码太长了！！！所以！可以写一个helper function
+					//来帮助，因为后面那个也会用到类似的东西！这就是java solution写的地方了！我把calonesD修改了，这边没有动，原理是一样的！
+					if (i == 0 && j == 0) {
+						left[i][j] = 1;
+						right[i][j] = 1;
+					} else if (i == 0) {
+						left[i][j] = 1;
+						right[i][j] = 1;
+					} else if (j == m - 1) {
+						left[i][j] = left[i - 1][j - 1] + 1;
+						right[i][j] = 1;
+					} else if (j == 0){
+						left[i][j] = 1;
+						right[i][j] = right[i-1][j+1] + 1;
+					}else {
+						left[i][j] = left[i - 1][j - 1] + 1;
+						right[i][j] = right[i - 1][j + 1] + 1;
+					}
+				}
+
+			}
+		}
+		merge(n,m,left,right);
+		return left;
+	}
+	//计算左下和右下
+	private int[][] calOnesD(int[][] matrix, int n, int m) {
+		int[][] left = new int[n][m];
+		int[][] right = new int[n][m];
+		for (int i = n - 1; i >= 0; i--) {
+			for (int j = m - 1; j >= 0; j--) {
+				if (matrix[i][j] == 1) {
+						//注意这里有+1！因为要加上自己这个1！
+						left[i][j] = getNumber(i + 1,j - 1,n,m,left) + 1;
+						right[i][j] = getNumber(i + 1,j + 1,n,m,right) + 1;
+				}
+			}
+		}
+		merge(n,m,left,right);
+		return left;
+	}
+	private int getNumber(int i, int j, int n, int m, int[][] number){
+		if (i < 0|| i >= n || j < 0 || j >= m){
+			return 0; 
+		}
+		return number[i][j];
+	}
+	private int merge(int n, int m, int[][] left, int[][] right) {
+		int max = 0;
+		for (int i = 0; i < n; i++) {
+			for (int j = 0; j < m; j++) {
+				left[i][j] = Math.min(left[i][j], right[i][j]);
+				max = Math.max(left[i][j], max);//要注意这里是max，上面是min！！！
+			}
+		}
+		return max;
+	}
+	public static void main(String[] args){
+		int[][] test = new int[][]{{1,0,1},{0,1,0},{1,0,1}};
+		largestXCross solu = new largestXCross();
+		System.out.println(solu.largest(test));
+	}
+
+}
+48.largest square by 1s--DP
+这道也是看看连续1。Time:O(n^3)
+package DP;
+
+public class largestSqaureBy1 {
+	//java solution is much shorter!! 判断的过程和算连续1的过程一起搞掉!很厉害！
+	public int largest(int[][] matrix){
+		if (matrix == null || matrix.length == 0) {
+			return 0;
+		}
+		int n = matrix.length;
+		int m = matrix[0].length;
+		if (m == 0) {
+			return 0;
+		}
+		
+		int max = 0;
+		int[][] bottom = new int[n + 1][m + 1];//bottom指的是下边长，这里加了一个1，这样就很好的避免了indexoutofbound。我觉得这也是需要学习的地方！这样节约if!
+		int[][] right = new int[n + 1][m + 1];//right指的是右边长
+		//注意java solution的解法，对于这两个matrix的命名不太一样，我觉得以后写按照java solution的命名更好。
+		//那样的话这里的下边长，其实是left arm,右边长其实是up arm,按照回头看的方向来作为物理意义！向上看up向左看left。
+		//因为向上看，向左看都会-1，那么我们定义case的时候+1,可以防止出错，但这样的话，后面要不停的+1。
+		for (int i = 0; i < n; i++){
+			for (int j = 0; j < m; j++){
+				if (matrix[i][j] == 1){
+					bottom[i + 1][j + 1] = bottom[i + 1][j] + 1;
+					right[i + 1][j + 1] = right[i][j + 1] + 1;
+				}
+								//把自己当做右下角，因为左上是都算好的点！我下面的写法是把自己当做左上，那样的做法前提是所有点的值都拿到了。
+				for (int k = Math.min(bottom[i + 1][j + 1], right[i + 1][j + 1]);
+; k >= 1; k--){
+					if (bottom[i + 2 - k][j + 1] >= k && right[i + 1][j + 2 - k] >= k) {//这里的index比较容易搞错！这里k是大于等于1！注意1代表的其实是原地，所以要这样写！因为自己这个点是1，那么就是长度为1了。
+						max = Math.max(max, k);
+					}
+				}
+			}
+			
+		}
+		return max;
+	}
+
+	//this is my solution
+	public int largest1(int[][] matrix) {
+		if (matrix == null || matrix.length == 0) {
+			return 0;
+		}
+		int n = matrix.length;
+		int m = matrix[0].length;
+		if (m == 0) {
+			return 0;
+		}
+		int[][] right = calOnesR(n, m, matrix);
+		int[][] down = calOnesD(n, m, matrix);
+		return compare(right, down, n, m);
+	}
+	//我这道题的思路有点怪了，直接从上往下也可以计算啊！是一样的啊！我没必要分开来而且还倒过来写。。。醉了！虽然结果应该没问题，但是不能保证，仅仅意思意思。
+	private int[][] calOnesR(int n, int m, int[][] matrix) {
+		int[][] num = new int[n][m];
+		for (int i = 0; i < n; i++) {
+			for (int j = m - 1; j >= 0; j--) {
+				if (matrix[i][j] == 1) {
+					num[i][j] = getNumber(i, j + 1, num, n, m) + 1;//注意这里的回头看是看上面还是下面！！
+				}
+			}
+		}
+		return num;
+	}
+
+	private int[][] calOnesD(int n, int m, int[][] matrix) {
+		int[][] num = new int[n][m];
+		for (int j = 0; j < m; j++) {
+			for (int i = n - 1; i >= 0; i-- ) {
+				if (matrix[i][j] == 1) {
+					num[i][j] = getNumber(i + 1, j, num, n, m) + 1;
+				}
+			}
+		}
+		return num;
+
+	}
+
+	private int getNumber(int i, int j, int[][] num, int n, int m) {
+		if (i < 0 || i >= n || j < 0 || j >= m) {
+			return 0;
+		}
+		return num[i][j];
+	}
+
+	private int compare(int[][] right, int[][] down, int n, int m) {
+		int curr = 0;
+		int max = 0;
+		for (int i = 0; i < n; i++) {
+			for (int j = 0; j < m; j++) {
+				if (right[i][j] != 0){//这里先判断一下这个位置是不是0.
+//这里check的应该是在我这个连续1上的每一个可能的点！而不是只check一个值,所以需要一个循环！！！！这就造成了最后复杂度是O(n^3)
+					for (int k = Math.min(right[i][j], down[i][j]); k > 0; k--){
+						if (down[i][j + k - 1] >= k && right[i + k - 1][j] >= k) {
+							max = Math.max(max, k);//注意比较的是k和max!!!!!但是不确定代码有没有不能通过的case,这道题还是看java solution的解法比较好，我这里k必须是大于0，不然里面会有indexoutofbound!
+						}
+					}
+				}
+			}
+		}
+		return max;
+	}
+	public static void main(String[] args){
+		int[][] test = new int[][]{{1,1,0,1,1,1,1,1,1},{1,0,1,0,1,1,1,1,1},{1,0,1,1,1,1,1,1,1},{1,1,0,1,0,1,1,1,1},{0,0,0,1,1,1,1,1,1}};
+		largestSqaureBy1 solu = new largestSqaureBy1();
+		System.out.println(solu.largest(test));
+	}
+}
+49.largest submatrix sum--DP
+这道题运用了打扁每一列的思路，这样，我们能得到一个可以用来算subarray的数组了！这样我们只需要遍历行的组合O(n^2)，然后再找出列的最大subarray O（n），最后是O（n^3）。
+注意这里java solution的很多好的技巧！省了很多代码！！！
+package DP;
+
+public class largestMatrixSum {
+	public int largest(int[][] matrix){
+		if (matrix == null || matrix.length == 0) {
+			return 0;
+		}
+		int n = matrix.length;
+		int m = matrix[0].length;
+		if (m == 0) {
+			return 0;
+		}
+		int max = Integer.MIN_VALUE;
+		for (int i = 0; i < n; i++){
+			//we use curr to save the row sum of each i,j
+			int[] curr = new int[m];
+			for (int j = i; j < n; j++){
+				//这直接传入了matrix[j]，太强了！因为计算这一行，所以只需要这一行的东西！
+				//这样之后的循环不需要加上j了！只需要遍历一遍列数！
+				add(curr,matrix[j]);
+				max = Math.max(subSum(curr), max);
+			}
+		}
+		return max;
+	}
+	private int subSum(int[] curr){
+		int m = curr.length;
+		//不需要数组呀！只需要知道前一个是谁！用tmp就好！！！只需要回头看一个嘛！！
+		int tmp = 0;
+		int max = 0;
+		for (int i  = 0; i < m; i++){
+			tmp = Math.max(tmp + curr[i], curr[i]);
+			max = Math.max(tmp,max);
+		}
+		return max;
+	}
+	private void add(int[] curr, int[] matrix){
+			for (int i = 0; i < curr.length; i++){//注意这里我们只需要加上新的一行！
+				curr[i] += matrix[i];
+			}
+	}
+	
+	//this is my solution,much more codes...although using the same method
+	public int largest1(int[][] matrix) {
+		if (matrix == null || matrix.length == 0) {
+			return 0;
+		}
+		int n = matrix.length;
+		int m = matrix[0].length;
+		if (m == 0) {
+			return 0;
+		}
+		int[][] colSum = new int[n][m];
+		for (int i = 0; i < n; i++) {//这里是先算出每一列上的sum。
+			for (int j = 0; j < m; j++) {
+				if (i == 0) {
+					colSum[i][j] = matrix[i][j];
+				} else {
+					colSum[i][j] = colSum[i - 1][j] + matrix[i][j];
+				}
+			}
+		}
+		int[] rowSum = new int[m];
+		int max = 0;
+		for (int i = 0; i < n; i++) {
+			for (int j = i; j < n; j++) {
+				for (int k = 0; k < m; k++) {
+					rowSum[k] = colSum[j][k] - colSum[i][k] + matrix[i][k];//打扁成rowSUM
+				}
+				int bigSum = 0;
+				for (int k = 0; k < m; k++) {//对rowSUM做subarray sum的最大值！！根本无需bigSum这个数组，一个int够了！
+					bigSum= Math.max((bigSum + rowSum[k]), rowSum[k]);
+					max = Math.max(bigSum, max);
+				}
+			}
+		}
+		return max;
+	}
+	public static void main(String[] args){
+		largestMatrixSum solu = new largestMatrixSum();
+		int[][] m = {{1},{-1}};
+		System.out.println(solu.largest(m));
+		
+	}
+
+}
+50.largest square surrounded by matchsticks
+我是按照老师上课的解法写的，新建了一个Point的类，里面存着这个点的右边和下边是否有火柴的布尔量。然后用两个for 循环从右下角开始，向上向左计算连续的火柴棍的数量。同时根据得到的长度中小的那一个，作为curr，开始试着看看在curr长度内的右边和下边有没有合适的端点构成正方形。运行应该没有问题。但是没有java solution,仅供参考。
+package DP;
+class Point {
+	boolean right_to_left;
+	boolean bottom_up;
+	public Point(boolean a, boolean b){
+		this.right_to_left = a;
+		this.bottom_up = b;
+	}
+}
+public class largestMatchSticks {
+	public int largest(Point[][] matrix) {
+		if (matrix == null || matrix.length == 0) {
+			return 0;
+		}
+		int n = matrix.length;
+		int m = matrix[0].length;
+		if (m == 0) {
+			return 0;
+		}
+		int[][] rtl = new int[n + 1][m + 1];//right_to_left
+		int[][] bu = new int[n + 1][m + 1];//bottom_to_up
+		int max = 0;
+		for (int i = n - 1; i >= 0; i--) {
+			for (int j = m - 1; j >= 0; j--) {
+				if (matrix[i][j].right_to_left) {
+					rtl[i][j] = rtl[i][j + 1] + 1;
+				}
+				if (matrix[i][j].bottom_up) {
+					bu[i][j] = bu[i + 1][j] + 1;
+				}
+				if (matrix[i][j].right_to_left && matrix[i][j].bottom_up ){
+					for (int curr = Math.min(rtl[i][j], bu[i][j]); curr >= 0; curr--) {
+						if (rtl[i + curr ][j] >= curr && bu[i][j + curr] >= curr) {
+							max = Math.max(max, curr);
+						}
+					}
+				}
+			}
+		}
+		return max;
+	}
+	public static void main(String[] args){
+		largestMatchSticks solu = new largestMatchSticks();
+		Point a1 = new Point(true,true);
+		Point a2 = new Point(true,true);
+		Point a3 = new Point(true,true);
+		Point a4 = new Point(false,false);
+		Point a5 = new Point(true,true);
+		Point a6 = new Point(false,true);
+		Point a7 = new Point(true,false);
+		Point[][] matrix ={{a1,a2,a5},{a3,a4,a6},{a1,a7,a7}};
+		System.out.println(solu.largest(matrix));
+	}
+}
+
+
+
